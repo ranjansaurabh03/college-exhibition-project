@@ -262,8 +262,8 @@ function ArchitectureSection() {
         ))}
       </div>
       <p className="text-sm text-muted">
-        Full-stack data flow when the API is hosted: React components call the REST API with fetch; Express routes validate
-        input and read and write MongoDB through Mongoose models.
+        Full-stack data flow once the client is connected to a hosted API: React components call the REST API with fetch;
+        Express routes validate input and read and write MongoDB through Mongoose models.
       </p>
     </Section>
   )

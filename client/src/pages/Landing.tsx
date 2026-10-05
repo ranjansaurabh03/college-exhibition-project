@@ -69,7 +69,10 @@ const OUTPUTS = [
   { icon: FileCode2, title: 'MERN starter code', body: 'Mongoose model, Express REST routes, JWT auth and React pages generated for your MVP.' },
 ]
 
-const STACK = ['React 19', 'TypeScript', 'Vite', 'Tailwind CSS', 'Zustand', 'Node.js + Express', 'MongoDB + Mongoose', 'Claude API']
+const STACK = [
+  { group: 'Live app', items: ['React 19', 'TypeScript', 'Vite', 'Tailwind CSS', 'Zustand'] },
+  { group: 'Server in the repo', items: ['Node.js + Express', 'MongoDB + Mongoose', 'Claude API'] },
+]
 
 export default function Landing() {
   const navigate = useNavigate()
@@ -200,17 +203,24 @@ export default function Landing() {
             <div>
               <Eyebrow>Built with the stack it recommends</Eyebrow>
               <p className="mt-2 max-w-md text-sm text-muted">
-                The app itself is the MERN architecture it teaches: a code-split React front end with an optional Node,
-                Express and MongoDB API.
+                The app follows the MERN architecture it teaches: a code-split React front end that runs on its own, plus a
+                tested Node, Express and MongoDB API in the repository, not yet connected to the live site.
               </p>
             </div>
-            <ul className="flex flex-wrap gap-2">
-              {STACK.map((t) => (
-                <li key={t} className="rounded-full border border-line bg-paper px-3 py-1.5 text-sm font-semibold text-espresso">
-                  {t}
-                </li>
+            <div className="space-y-3">
+              {STACK.map((g) => (
+                <div key={g.group} className="flex flex-wrap items-center gap-2">
+                  <span className="w-36 text-xs font-semibold uppercase tracking-wider text-clay">{g.group}</span>
+                  <ul className="flex flex-wrap gap-2">
+                    {g.items.map((t) => (
+                      <li key={t} className="rounded-full border border-line bg-paper px-3 py-1.5 text-sm font-semibold text-espresso">
+                        {t}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               ))}
-            </ul>
+            </div>
           </div>
         </section>
 

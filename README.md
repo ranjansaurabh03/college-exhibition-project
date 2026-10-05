@@ -38,9 +38,9 @@ No sign-up and no API key needed. Projects are saved in your browser.
 
 ```
 ┌──────────────────────────────┐      ┌───────────────────────────┐      ┌──────────────┐
-│ React SPA (GitHub Pages)     │      │ Node.js + Express 5 API   │      │ MongoDB      │
-│ • Vite 8, React 19, TS       │ REST │ • JWT auth, bcrypt        │      │ • users      │
-│ • Tailwind 4, React Router 8 │ ───▶ │ • /api/projects CRUD      │ ───▶ │ • projects   │
+│ React SPA (GitHub Pages)     │ REST │ Node.js + Express 5 API   │      │ MongoDB      │
+│ • Vite 8, React 19, TS       │ (not │ • JWT auth, bcrypt        │      │ • users      │
+│ • Tailwind 4, React Router 8 │ yet) │ • /api/projects CRUD      │ ───▶ │ • projects   │
 │ • Zustand (localStorage)     │      │ • /api/ai/chat → Claude   │      │   (flexible  │
 │ • Rule-based co-founder      │      │   (SSE stream, rate-      │      │   sub-docs)  │
 │   engine (pure functions)    │      │   limited, daily cap)     │      │              │
@@ -49,7 +49,8 @@ No sign-up and no API key needed. Projects are saved in your browser.
 ```
 
 The deployed site runs the co-founder engine entirely in the browser, so the demo always works. The back end in
-`/server` (accounts, cloud projects, Claude-powered chat) is complete and tested; hosting it is optional (see below).
+`/server` (accounts, cloud projects, Claude-powered chat) is built and tested, but **the live site does not call it
+yet**: hosting the API (see below) and then wiring the client to it are two separate next steps.
 
 ### The co-founder engine
 
@@ -111,6 +112,8 @@ npm test
   2. On Render: **New → Blueprint**, pick this repository (`render.yaml` is detected) and fill in `MONGODB_URI` and,
      optionally, `ANTHROPIC_API_KEY`.
   3. Check `https://<your-service>.onrender.com/api/health` returns `{ "ok": true, "db": true }`.
+  4. Hosting alone doesn’t change the live site: the client still needs to be connected to the API (login, cloud
+     projects and the chat panel) before it uses it.
 
 The Claude chat uses `claude-opus-5` by default (`CLAUDE_MODEL` to change), streams replies over server-sent events, and
 is protected by a per-IP rate limit and a daily cap (`AI_DAILY_LIMIT`) so a public deployment can’t drain the API credit.
