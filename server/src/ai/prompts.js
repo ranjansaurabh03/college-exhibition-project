@@ -27,7 +27,7 @@ export function projectContext(stage, project = {}) {
       outcome: ideation.outcome,
       approach: ideation.approach,
     },
-    ideation: stage === 'ideation' ? ideation : { pain: ideation.pain, differentiator: ideation.differentiator },
+    ideation: stage === 'ideation' ? ideation : { rawIdea: ideation.rawIdea, pain: ideation.pain, differentiator: ideation.differentiator },
     ...(stage === 'validation' ? { validation: project.validation } : {}),
     ...(stage === 'scoping' || stage === 'building' ? { scoping: project.scoping } : {}),
     ...(stage === 'building' ? { building: project.building } : {}),
@@ -35,4 +35,92 @@ export function projectContext(stage, project = {}) {
   let json = JSON.stringify(data, null, 1)
   if (json.length > MAX_CONTEXT_CHARS) json = json.slice(0, MAX_CONTEXT_CHARS) + '\n…(truncated)'
   return `<project stage="${stage}">\n${json}\n</project>`
+}
+
+// ---------------------------------------------------------------------------
+// "Draft with AI": one structured draft per stage. The founder edits it; nothing is presented as fact.
+
+const str = (description) => ({ type: 'string', description })
+
+export const DRAFT_SCHEMAS = {
+  ideation: {
+    type: 'object',
+    properties: {
+      productName: str('A short, memorable working name (one or two words).'),
+      targetUser: str('One specific user: role plus situation, under 15 words. Never a broad audience like "students".'),
+      userContext: str('When and where the problem hits them, in one sentence.'),
+      pain: str('What goes wrong and what it costs them in time, money or stress, in one or two sentences.'),
+      frequency: { type: 'string', enum: ['daily', 'weekly', 'monthly', 'rarely'] },
+      severity: { type: 'integer', description: '1 (mild) to 5 (they would pay to fix it today).' },
+      currentSolution: str('How they deal with it today (the workaround that is the real competitor).'),
+      alternatives: { type: 'array', items: str('An existing product or habit, then a colon and what is missing.') },
+      differentiator: str('What this product can do that the alternatives cannot, in one concrete sentence.'),
+      whyNow: str('What changed recently that makes this possible or urgent.'),
+      willingnessToPay: { type: 'string', enum: ['yes', 'maybe', 'no'] },
+      outcome: str('A verb phrase that completes "[Product] helps [user] …", e.g. "grab lunch in a 20-minute break".'),
+      approach: str('A phrase that completes "… by …", e.g. "letting them pre-order and skip the queue".'),
+    },
+    required: ['productName', 'targetUser', 'userContext', 'pain', 'frequency', 'severity', 'currentSolution', 'alternatives', 'differentiator', 'whyNow', 'willingnessToPay', 'outcome', 'approach'],
+  },
+  validation: {
+    type: 'object',
+    properties: {
+      headline: str('Landing-page headline in the user’s language about the outcome, under 10 words.'),
+      subheadline: str('One or two sentences: how it works and who it is for.'),
+      cta: str('Call-to-action button text, two to four words.'),
+    },
+    required: ['headline', 'subheadline', 'cta'],
+  },
+  scoping: {
+    type: 'object',
+    properties: {
+      features: {
+        type: 'array',
+        description: 'Six to ten candidate features, including a few tempting extras that should be cut.',
+        items: {
+          type: 'object',
+          properties: {
+            name: str('Feature name, under 8 words.'),
+            pays: { type: 'string', enum: ['yes', 'no'], description: 'Does it change whether someone pays or switches?' },
+            core: { type: 'string', enum: ['yes', 'no'], description: 'Is it required for the one core flow?' },
+            effort: { type: 'string', enum: ['S', 'M', 'L'], description: 'S ≈ 1 day, M ≈ 2–3 days, L ≈ 1 week.' },
+          },
+          required: ['name', 'pays', 'core', 'effort'],
+        },
+      },
+      coreFlow: { type: 'array', description: 'Three to six steps from opening the app to the outcome.', items: str('One user step, under 10 words.') },
+      outcome: str('One measurable outcome for the user at the end of the core flow.'),
+    },
+    required: ['features', 'coreFlow', 'outcome'],
+  },
+  building: {
+    type: 'object',
+    properties: {
+      entityName: str('The one core object the MVP manages, singular PascalCase, e.g. "Order".'),
+      fields: {
+        type: 'array',
+        description: 'Three to seven fields the core flow needs. Do not include owner, createdAt or updatedAt.',
+        items: {
+          type: 'object',
+          properties: {
+            name: str('camelCase field name.'),
+            type: { type: 'string', enum: ['String', 'Number', 'Boolean', 'Date'] },
+            required: { type: 'boolean' },
+          },
+          required: ['name', 'type', 'required'],
+        },
+      },
+    },
+    required: ['entityName', 'fields'],
+  },
+}
+
+export function draftInstruction(stage) {
+  const task = {
+    ideation: 'Draft the Ideation canvas from the founder’s raw idea. Narrow the audience to one specific user and make every field concrete.',
+    validation: 'Write landing-page copy that tests demand for this idea, in plain language the user would use.',
+    scoping: 'Draft the feature list, the one core flow and the outcome for a three-week MVP. Mark features honestly so the pay test cuts the extras.',
+    building: 'Design the data model for the MVP’s one core object.',
+  }[stage]
+  return `${task} These are hypotheses for the founder to test, not facts: do not invent statistics, research or customer quotes. Reply with JSON only.`
 }

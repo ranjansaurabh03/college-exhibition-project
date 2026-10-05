@@ -3,7 +3,7 @@ import type { StageKey } from './types'
 
 /** What the connected server can do (GET /api/status). */
 export interface ServerStatus {
-  ai: { enabled: boolean; model: string | null }
+  ai: { enabled: boolean; model: string | null; provider?: string }
   db: { enabled: boolean }
 }
 

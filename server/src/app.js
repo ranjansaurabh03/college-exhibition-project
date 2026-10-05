@@ -1,7 +1,7 @@
 import cors from 'cors'
 import express from 'express'
 import { rateLimit } from 'express-rate-limit'
-import { claude } from './ai/claude.js'
+import { gemini } from './ai/gemini.js'
 import { config } from './config.js'
 import { connectDb, requireDb } from './db.js'
 import { errorHandler, notFound } from './middleware/errors.js'
@@ -9,8 +9,8 @@ import { aiRoutes } from './routes/ai.js'
 import authRoutes from './routes/auth.js'
 import projectRoutes from './routes/projects.js'
 
-/** Builds the Express app. `ai` is injectable so tests can stub Claude. */
-export function createApp({ ai = claude } = {}) {
+/** Builds the Express app. `ai` is injectable so tests can stub the model provider. */
+export function createApp({ ai = gemini } = {}) {
   const app = express()
   app.disable('x-powered-by')
   // Render and Vercel sit behind one proxy; this lets rate limiting see real client IPs.
@@ -21,7 +21,7 @@ export function createApp({ ai = claude } = {}) {
   // What this deployment can do; the web app checks it on load.
   app.get('/api/status', async (_req, res) => {
     const db = await connectDb().catch(() => false)
-    res.json({ ai: { enabled: ai.enabled(), model: ai.enabled() ? ai.model() : null }, db: { enabled: db } })
+    res.json({ ai: { enabled: ai.enabled(), model: ai.enabled() ? ai.model() : null, provider: ai.provider }, db: { enabled: db } })
   })
 
   app.get('/api/health', async (_req, res) => {

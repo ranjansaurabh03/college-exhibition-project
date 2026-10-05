@@ -8,26 +8,25 @@ let createApp
 let parseChatBody
 let dailyBudget
 
-// A stand-in for Claude: streams two text deltas, then finishes like the SDK stream does.
-function fakeAi({ enabled = true, stopReason = 'end_turn', fail = false } = {}) {
+// A stand-in for the model provider: streams two text chunks, then reports the model that answered.
+function fakeAi({ enabled = true, fail = false, draftData } = {}) {
   const calls = []
   return {
     calls,
+    provider: 'test',
     enabled: () => enabled,
-    model: () => 'claude-test',
-    streamReply(params) {
+    model: () => 'model-test',
+    async *stream(params) {
       calls.push(params)
-      const events = [
-        { type: 'content_block_delta', delta: { type: 'text_delta', text: 'Who exactly ' } },
-        { type: 'content_block_delta', delta: { type: 'text_delta', text: 'is the user?' } },
-      ]
-      return {
-        async *[Symbol.asyncIterator]() {
-          if (fail) throw new Error('boom')
-          yield* events
-        },
-        finalMessage: async () => ({ stop_reason: stopReason, model: 'claude-test' }),
-      }
+      if (fail) throw new Error('boom')
+      yield { type: 'text', text: 'Who exactly ' }
+      yield { type: 'text', text: 'is the user?' }
+      yield { type: 'done', model: 'model-test' }
+    },
+    async draft(params) {
+      calls.push(params)
+      if (fail) throw new Error('boom')
+      return { data: draftData ?? {}, model: 'model-test' }
     },
   }
 }
@@ -58,7 +57,7 @@ describe('health and auth', () => {
     expect(res.status).toBe(200)
     expect(res.body).toEqual({ ok: true, db: true, ai: false })
     const status = await request(createApp({ ai: fakeAi() })).get('/api/status')
-    expect(status.body).toEqual({ ai: { enabled: true, model: 'claude-test' }, db: { enabled: true } })
+    expect(status.body).toEqual({ ai: { enabled: true, model: 'model-test', provider: 'test' }, db: { enabled: true } })
   })
 
   it('registers, rejects duplicates and bad input, and logs in', async () => {
@@ -153,8 +152,9 @@ describe('co-founder chat', () => {
 
   it('reports status and refuses when no API key is configured', async () => {
     const app = createApp({ ai: fakeAi({ enabled: false }) })
-    expect((await request(app).get('/api/ai/status')).body).toEqual({ enabled: false, model: null })
+    expect((await request(app).get('/api/ai/status')).body).toEqual({ enabled: false, model: null, provider: 'test' })
     expect((await request(app).post('/api/ai/chat').send(body)).status).toBe(503)
+    expect((await request(app).post('/api/ai/draft').send({ stage: 'ideation', project: {} })).status).toBe(503)
   })
 
   it('streams the reply as server-sent events', async () => {
@@ -169,24 +169,54 @@ describe('co-founder chat', () => {
     expect(events).toEqual([
       { type: 'text', text: 'Who exactly ' },
       { type: 'text', text: 'is the user?' },
-      { type: 'done', stopReason: 'end_turn', model: 'claude-test' },
+      { type: 'done', model: 'model-test' },
     ])
     expect(ai.calls[0]).toMatchObject({ stage: 'ideation', messages: body.messages })
   })
 
-  it('turns refusals and failures into error events', async () => {
-    const refused = await request(createApp({ ai: fakeAi({ stopReason: 'refusal' }) })).post('/api/ai/chat').send(body)
-    expect(refused.text).toContain('"type":"error"')
+  it('turns failures into error events', async () => {
     const failed = await request(createApp({ ai: fakeAi({ fail: true }) })).post('/api/ai/chat').send(body)
     expect(failed.text).toContain('"type":"error"')
   })
 
-  it('validates the conversation before calling Claude', async () => {
+  it('validates the conversation before calling the model', async () => {
     const ai = fakeAi()
     const app = createApp({ ai })
     expect((await request(app).post('/api/ai/chat').send({ ...body, stage: 'marketing' })).status).toBe(400)
     expect((await request(app).post('/api/ai/chat').send({ ...body, messages: [] })).status).toBe(400)
+    expect((await request(app).post('/api/ai/draft').send({ stage: 'marketing' })).status).toBe(400)
     expect(ai.calls).toHaveLength(0)
+  })
+
+  it('returns a sanitised draft: known keys only, enums enforced, lengths capped', async () => {
+    const draftData = {
+      targetUser: 'First-year hostel students with back-to-back labs',
+      frequency: 'hourly',
+      severity: 9,
+      alternatives: ['Zomato: no campus delivery', 'Canteen WhatsApp group: orders get lost'],
+      pain: 'x'.repeat(1000),
+      hacker: '<script>',
+    }
+    const res = await request(createApp({ ai: fakeAi({ draftData }) })).post('/api/ai/draft').send({ stage: 'ideation', project: { ideation: { rawIdea: 'canteen' } } })
+    expect(res.status).toBe(200)
+    expect(res.body.model).toBe('model-test')
+    expect(res.body.draft.targetUser).toBe('First-year hostel students with back-to-back labs')
+    expect(res.body.draft.frequency).toBe('')
+    expect(res.body.draft.severity).toBe(5)
+    expect(res.body.draft.alternatives).toBe('Zomato: no campus delivery\nCanteen WhatsApp group: orders get lost')
+    expect(res.body.draft.pain).toHaveLength(400)
+    expect(res.body.draft.hacker).toBeUndefined()
+  })
+
+  it('sanitises scoping and building drafts too', async () => {
+    const scoping = await request(createApp({ ai: fakeAi({ draftData: { features: [{ name: 'Login', pays: 'no', core: 'yes', effort: 'XL' }, { name: '' }], coreFlow: ['Open app', 7], outcome: 'Lunch in 2 minutes' } }) }))
+      .post('/api/ai/draft')
+      .send({ stage: 'scoping', project: {} })
+    expect(scoping.body.draft).toEqual({ features: [{ name: 'Login', pays: 'no', core: 'yes', effort: 'M' }], coreFlow: ['Open app'], outcome: 'Lunch in 2 minutes' })
+    const building = await request(createApp({ ai: fakeAi({ draftData: { entityName: 'Order!', fields: [{ name: 'total amount', type: 'Money', required: 1 }] } }) }))
+      .post('/api/ai/draft')
+      .send({ stage: 'building', project: {} })
+    expect(building.body.draft).toEqual({ entityName: 'Order', fields: [{ name: 'totalamount', type: 'String', required: true }] })
   })
 })
 

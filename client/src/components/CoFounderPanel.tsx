@@ -54,14 +54,14 @@ export function CoFounderPanel({ project, stage }: { project: Project; stage: St
           <div>
             <p className="font-display font-bold leading-tight">Your co-founder</p>
             <p className="text-xs text-cream/70">
-              {ai?.enabled ? 'Claude chat + rule checks' : 'Built-in rule engine · runs in your browser'}
+              {ai?.enabled ? 'Gemini chat + rule checks' : 'Built-in rule engine · runs in your browser'}
             </p>
           </div>
         </div>
         {ai?.enabled ? (
           <div role="tablist" aria-label="Co-founder" className="mt-3 grid grid-cols-2 gap-1 rounded-xl bg-white/10 p-1 text-sm font-semibold">
             <TabButton active={tab === 'chat'} onClick={() => setTab('chat')}>
-              <MessagesSquare className="size-4" aria-hidden="true" /> Ask Claude
+              <MessagesSquare className="size-4" aria-hidden="true" /> Ask AI
             </TabButton>
             <TabButton active={tab === 'checks'} onClick={() => setTab('checks')}>
               <ListChecks className="size-4" aria-hidden="true" /> Checks

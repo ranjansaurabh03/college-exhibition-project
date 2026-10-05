@@ -71,7 +71,7 @@ const OUTPUTS = [
 
 const STACK = [
   { group: 'Live app', items: ['React 19', 'TypeScript', 'Vite', 'Tailwind CSS', 'Zustand'] },
-  { group: 'Server in the repo', items: ['Node.js + Express', 'MongoDB + Mongoose', 'Claude API'] },
+  { group: 'Server in the repo', items: ['Node.js + Express', 'MongoDB + Mongoose', 'Gemini API'] },
 ]
 
 export default function Landing() {

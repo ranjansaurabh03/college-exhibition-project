@@ -15,7 +15,7 @@ export function EngineNote({ className }: { className?: string }) {
         <strong>How the co-founder works here:</strong>{' '}
         {ai ? (
           <>
-            live answers come from Claude ({status?.ai.model}) through this app’s Node.js API, streamed as they are
+            live answers come from Google Gemini ({status?.ai.model}) through this app’s Node.js API, streamed as they are
             written. Alongside it, a rule engine in your browser runs the checks: vague users, pain and differentiation
             scores, validation benchmarks, the pay test and the generated MERN code.
           </>

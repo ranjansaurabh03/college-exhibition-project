@@ -32,7 +32,7 @@ function toTurns(history: ChatMessage[]): ChatTurn[] {
   return turns
 }
 
-/** The project data Claude sees: the canvases, not the chat transcripts. */
+/** The project data the model sees: the canvases, not the chat transcripts. */
 function contextOf(p: Project) {
   return {
     name: p.name,
@@ -49,6 +49,8 @@ export function ChatPanel({ project, stage, model }: { project: Project; stage: 
   const [draft, setDraft] = useState('')
   const [streaming, setStreaming] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  // The model that actually answered last (it can differ from the configured one after a fallback).
+  const [answeredBy, setAnsweredBy] = useState<string | null>(null)
   const abortRef = useRef<AbortController | null>(null)
   const listRef = useRef<HTMLDivElement>(null)
 
@@ -69,7 +71,7 @@ export function ChatPanel({ project, stage, model }: { project: Project; stage: 
     abortRef.current = controller
     let reply = ''
     try {
-      await streamChat({
+      const result = await streamChat({
         stage,
         project: contextOf(project),
         messages: toTurns(history),
@@ -79,6 +81,7 @@ export function ChatPanel({ project, stage, model }: { project: Project; stage: 
           setStreaming(reply)
         },
       })
+      if (result.model) setAnsweredBy(result.model)
       setAiChat(project.id, stage, [...history, message('cofounder', reply || 'I don’t have anything to add.')])
     } catch (err) {
       if (controller.signal.aborted) {
@@ -105,7 +108,7 @@ export function ChatPanel({ project, stage, model }: { project: Project; stage: 
             <span className="absolute inline-flex size-full animate-ping rounded-full bg-good/60" />
             <span className="relative inline-flex size-2 rounded-full bg-good" />
           </span>
-          Live · {model ?? 'Claude'}
+          Live · {answeredBy ?? model ?? 'Gemini'}
         </p>
         {messages.length ? (
           <button
@@ -123,7 +126,7 @@ export function ChatPanel({ project, stage, model }: { project: Project; stage: 
         {messages.length === 0 && streaming === null ? (
           <div>
             <p className="text-ink/80">
-              Ask anything about <strong className="text-espresso">{stageMeta(stage).title}</strong>. Claude sees this project’s canvases and
+              Ask anything about <strong className="text-espresso">{stageMeta(stage).title}</strong>. Gemini sees this project’s canvases and
               answers as your co-founder.
             </p>
             <div className="mt-3 flex flex-col gap-1.5">
@@ -175,7 +178,7 @@ export function ChatPanel({ project, stage, model }: { project: Project; stage: 
             </Button>
           )}
         </div>
-        <p className="mt-1.5 text-[11px] text-muted">Claude can make mistakes. Check important facts.</p>
+        <p className="mt-1.5 text-[11px] text-muted">AI can make mistakes. Check important facts.</p>
       </form>
     </div>
   )

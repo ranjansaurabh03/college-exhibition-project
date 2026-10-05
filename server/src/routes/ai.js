@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import { rateLimit } from 'express-rate-limit'
-import { describeClaudeError } from '../ai/claude.js'
+import { sanitizeDraft } from '../ai/drafts.js'
+import { describeAiError } from '../ai/gemini.js'
 import { config } from '../config.js'
 import { connectDb, dbConnected } from '../db.js'
 import Usage from '../models/Usage.js'
@@ -11,9 +12,11 @@ function badRequest(message) {
   return Object.assign(new Error(message), { status: 400 })
 }
 
+const projectOf = (body) => (body.project && typeof body.project === 'object' ? body.project : {})
+
 export function parseChatBody(body) {
   if (!body || typeof body !== 'object') throw badRequest('Send a JSON body with stage, project and messages')
-  const { stage, project, messages } = body
+  const { stage, messages } = body
   if (!STAGES.includes(stage)) throw badRequest(`stage must be one of: ${STAGES.join(', ')}`)
   if (!Array.isArray(messages) || messages.length < 1 || messages.length > 20) {
     throw badRequest('Send between 1 and 20 messages')
@@ -31,11 +34,17 @@ export function parseChatBody(body) {
   if (clean[0].role !== 'user' || clean.at(-1).role !== 'user') {
     throw badRequest('The conversation must start and end with a user message')
   }
-  return { stage, project: project && typeof project === 'object' ? project : {}, messages: clean }
+  return { stage, project: projectOf(body), messages: clean }
+}
+
+export function parseDraftBody(body) {
+  if (!body || typeof body !== 'object') throw badRequest('Send a JSON body with stage and project')
+  if (!STAGES.includes(body.stage)) throw badRequest(`stage must be one of: ${STAGES.join(', ')}`)
+  return { stage: body.stage, project: projectOf(body) }
 }
 
 /**
- * A global daily budget for AI calls, so a public deployment can't drain the API credit.
+ * A global daily budget for AI calls, so a public deployment can't exhaust the API quota.
  * Counted in MongoDB when it's available (shared by every serverless instance),
  * otherwise in memory.
  */
@@ -72,25 +81,34 @@ export function aiRoutes(ai) {
   const budget = dailyBudget(config.aiDailyLimit)
   const perIp = rateLimit({
     windowMs: 10 * 60 * 1000,
-    limit: 30,
+    limit: 40,
     standardHeaders: 'draft-8',
     legacyHeaders: false,
     skip: () => config.isTest,
-    message: { error: 'Too many co-founder messages. Wait a few minutes and try again.' },
+    message: { error: 'Too many co-founder requests. Wait a few minutes and try again.' },
   })
 
-  router.get('/status', (_req, res) => {
-    res.json({ enabled: ai.enabled(), model: ai.enabled() ? ai.model() : null })
-  })
-
-  // Streams the reply as server-sent events: {type:"text"} chunks, then {type:"done"} or {type:"error"}.
-  router.post('/chat', perIp, async (req, res) => {
-    if (!ai.enabled()) return res.status(503).json({ error: 'The co-founder chat is not configured on this server.' })
-    const body = parseChatBody(req.body)
+  async function guard(res) {
+    if (!ai.enabled()) {
+      res.status(503).json({ error: 'The AI co-founder is not configured on this server.' })
+      return false
+    }
     await connectDb().catch(() => false) // so the daily budget is shared across instances when possible
     if (!(await budget.take())) {
-      return res.status(429).json({ error: 'Today’s AI limit has been reached. Try again tomorrow.' })
+      res.status(429).json({ error: 'Today’s AI limit has been reached. Try again tomorrow.' })
+      return false
     }
+    return true
+  }
+
+  router.get('/status', (_req, res) => {
+    res.json({ enabled: ai.enabled(), model: ai.enabled() ? ai.model() : null, provider: ai.provider })
+  })
+
+  // Streams the reply as server-sent events: {type:"text"} chunks, then {type:"done", model} or {type:"error"}.
+  router.post('/chat', perIp, async (req, res) => {
+    const body = parseChatBody(req.body)
+    if (!(await guard(res))) return
 
     res.writeHead(200, {
       'Content-Type': 'text/event-stream; charset=utf-8',
@@ -105,25 +123,27 @@ export function aiRoutes(ai) {
     })
 
     try {
-      const stream = ai.streamReply({ ...body, signal: abort.signal })
-      for await (const event of stream) {
-        if (event.type === 'content_block_delta' && event.delta.type === 'text_delta') {
-          send({ type: 'text', text: event.delta.text })
-        }
-      }
-      const final = await stream.finalMessage()
-      if (final.stop_reason === 'refusal') {
-        send({ type: 'error', message: 'The co-founder can’t help with that request.' })
-      } else {
-        send({ type: 'done', stopReason: final.stop_reason, model: final.model })
-      }
+      for await (const event of ai.stream({ ...body, signal: abort.signal })) send(event)
     } catch (err) {
       if (!abort.signal.aborted) {
-        console.error('Claude request failed:', err?.status ?? '', err?.message)
-        send({ type: 'error', message: describeClaudeError(err) })
+        console.error('AI chat failed:', err?.status ?? '', err?.message)
+        send({ type: 'error', message: describeAiError(err) })
       }
     } finally {
       res.end()
+    }
+  })
+
+  // One structured, validated draft for a stage. The client fills only empty fields.
+  router.post('/draft', perIp, async (req, res) => {
+    const body = parseDraftBody(req.body)
+    if (!(await guard(res))) return
+    try {
+      const { data, model } = await ai.draft(body)
+      res.json({ draft: sanitizeDraft(body.stage, data), model })
+    } catch (err) {
+      console.error('AI draft failed:', err?.status ?? '', err?.message)
+      res.status(err?.status === 400 ? 400 : 502).json({ error: describeAiError(err) })
     }
   })
 

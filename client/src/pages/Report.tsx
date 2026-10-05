@@ -222,7 +222,7 @@ function ArchitectureSection() {
       icon: Server,
       title: 'Node.js + Express 5 API',
       tag: 'In /server · runs locally',
-      items: ['REST: /api/auth, /api/projects', 'JWT auth, bcrypt password hashing', 'Claude API chat endpoint (streams over SSE)', 'Rate limiting on the AI route'],
+      items: ['REST: /api/auth, /api/projects', 'JWT auth, bcrypt password hashing', 'Gemini API chat endpoint (streams over SSE)', 'Rate limiting on the AI route'],
     },
     {
       icon: Database,
@@ -236,7 +236,7 @@ function ArchitectureSection() {
       <p>
         The deployed site is a static React app: the co-founder engine runs in the browser, so the demo works for anyone,
         offline, with no sign-up and no API key. The repository also contains the Node, Express and MongoDB back end
-        described in the deck (accounts, project storage and a Claude chat endpoint), covered by automated tests. It runs
+        described in the deck (accounts, project storage and a Gemini chat endpoint), covered by automated tests. It runs
         locally today; hosting it and connecting the live site is the next step, and a Render blueprint is included.
       </p>
       <div className="flex flex-col gap-3 lg:flex-row">
@@ -406,7 +406,7 @@ function TestingSection() {
       <p>
         <strong>The API has its own suite</strong> (Vitest, Supertest and an in-memory MongoDB): registration and login,
         rejected tokens, project CRUD restricted to the owner, input validation, the streamed chat format, refusal and
-        error handling, the daily AI cap, and the exact request the real Anthropic SDK sends. CI runs it on every push.
+        error handling, the daily AI cap, and the exact request the real Gemini SDK sends. CI runs it on every push.
       </p>
       <p>
         <strong>Generated code is executed, not just generated.</strong> The CanteenQ starter was emitted, installed and
@@ -456,7 +456,7 @@ function SwotSection() {
         q={{
           S: 'Covers the whole 0-to-1 journey, not one step. Explainable rules, works offline with no sign-up, and outputs real artefacts: landing page, survey and runnable code.',
           W: 'Rule-based language understanding is keyword-driven and English-only. Projects live in one browser until the back end is hosted.',
-          O: 'Plugging in an LLM (the Claude endpoint is ready) for open-ended advice; college incubators and E-cells running idea-validation programmes; hackathon teams.',
+          O: 'Plugging in an LLM (the Gemini endpoint is ready) for open-ended advice; college incubators and E-cells running idea-validation programmes; hackathon teams.',
           T: 'General-purpose AI assistants and app builders adding similar guided flows; founders preferring tools that just write code over tools that question the idea.',
         }}
       />
@@ -504,7 +504,7 @@ function LimitsSection() {
 
 function FutureSection() {
   const items: [typeof Cpu, string, string][] = [
-    [Cpu, 'LLM co-founder chat', 'Host the API with a Claude key and connect the co-founder panel to it. The endpoint, prompt and streaming already exist in /server.'],
+    [Cpu, 'LLM co-founder chat', 'Host the API with a Gemini key and connect the co-founder panel to it. The endpoint, prompt and streaming already exist in /server.'],
     [Database, 'Cloud projects and teams', 'MongoDB Atlas + JWT accounts so co-founders can work on the same idea from any device.'],
     [FlaskConical, 'Live validation data', 'Collect landing-page sign-ups and survey answers directly instead of typing the numbers in.'],
     [ShieldCheck, 'One-click GitHub repo', 'Push the generated starter straight to a new GitHub repository with CI already set up.'],

@@ -1,18 +1,20 @@
 import request from 'supertest'
 import { beforeAll, describe, expect, it } from 'vitest'
 
-// Without MONGODB_URI the API still serves the Claude chat; accounts and projects report 503.
+// Without MONGODB_URI the API still serves the AI co-founder; accounts and projects report 503.
 let createApp
 
 const fakeAi = {
+  provider: 'test',
   enabled: () => true,
-  model: () => 'claude-test',
-  streamReply: () => ({
-    async *[Symbol.asyncIterator]() {
-      yield { type: 'content_block_delta', delta: { type: 'text_delta', text: 'Hello' } }
-    },
-    finalMessage: async () => ({ stop_reason: 'end_turn', model: 'claude-test' }),
-  }),
+  model: () => 'model-test',
+  async *stream() {
+    yield { type: 'text', text: 'Hello' }
+    yield { type: 'done', model: 'model-test' }
+  },
+  async draft() {
+    return { data: {}, model: 'model-test' }
+  },
 }
 
 beforeAll(async () => {
@@ -24,7 +26,7 @@ beforeAll(async () => {
 describe('without a database', () => {
   it('reports what is available', async () => {
     const res = await request(createApp({ ai: fakeAi })).get('/api/status')
-    expect(res.body).toEqual({ ai: { enabled: true, model: 'claude-test' }, db: { enabled: false } })
+    expect(res.body).toEqual({ ai: { enabled: true, model: 'model-test', provider: 'test' }, db: { enabled: false } })
   })
 
   it('turns away account and project requests with 503', async () => {

@@ -108,6 +108,6 @@ export interface Project {
   building: Building
   /** Guided-interview transcript (rule engine). */
   chat: Partial<Record<StageKey, ChatMessage[]>>
-  /** Conversations with Claude, one per stage. */
+  /** Conversations with the AI co-founder (Gemini), one per stage. */
   aiChat: Partial<Record<StageKey, ChatMessage[]>>
 }

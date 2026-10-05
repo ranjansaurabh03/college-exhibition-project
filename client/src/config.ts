@@ -10,7 +10,7 @@ export const SITE = {
   },
 } as const
 
-// Optional back end (Node + Express + MongoDB + Claude), chosen at build time:
+// Optional back end (Node + Express + MongoDB + Gemini), chosen at build time:
 //   VITE_API_URL=same-origin            → the API is served from this site's /api (Vercel)
 //   VITE_API_URL=https://example.com    → a separately hosted API (needs CORS)
 //   unset                               → no API: the rule-based co-founder runs in the browser

@@ -4,3 +4,9 @@ client/dist
 tools
 .github
 docs
+# Secrets stay local; production reads them from Vercel environment variables.
+.env
+.env.*
+**/.env
+**/.env.*
+!**/.env.example
