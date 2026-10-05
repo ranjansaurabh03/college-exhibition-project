@@ -1,0 +1,58 @@
+@import 'tailwindcss';
+
+/* Palette taken from the exhibition deck: cream pages, tan/cocoa accents,
+   and the navy → teal gradient of the title slide. */
+@theme {
+  --color-cream: #f6f1ea;
+  --color-paper: #fffdf9;
+  --color-sand: #ece2d5;
+  --color-tan: #c4a484;
+  --color-clay: #9a7149;
+  --color-cocoa: #6b3f22;
+  --color-espresso: #2e1a0f;
+  --color-ink: #231d19;
+  --color-muted: #6f6359;
+  --color-line: #e3d8ca;
+
+  --color-night: #0f2747;
+  --color-teal: #1b7a7e;
+  --color-mint: #7fd1c7;
+
+  --color-good: #2f7d4f;
+  --color-warn: #b7791f;
+  --color-bad: #b4442f;
+
+  --font-display: 'Outfit', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'DM Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    @apply bg-cream font-sans text-ink antialiased;
+  }
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-display tracking-tight;
+  }
+  ::selection {
+    @apply bg-tan/40;
+  }
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-teal;
+  }
+}
+
+@layer components {
+  .hero-gradient {
+    background:
+      radial-gradient(1200px 600px at 85% 10%, rgb(27 122 126 / 0.55), transparent 60%),
+      radial-gradient(900px 500px at 10% 90%, rgb(76 49 125 / 0.35), transparent 60%),
+      linear-gradient(135deg, #0b1d38 0%, #0f2747 45%, #134a5e 100%);
+  }
+}
