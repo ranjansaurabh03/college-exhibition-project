@@ -28,7 +28,7 @@ jobs:
           cache: npm
           cache-dependency-path: client/package-lock.json
       - run: npm ci
-      - run: npm test
+      - run: npm run test:report
       - run: npm run build
         env:
           # Optional: set a repository variable VITE_API_URL to connect the hosted backend.

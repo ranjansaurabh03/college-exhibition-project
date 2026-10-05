@@ -18,9 +18,13 @@
   --color-teal: #1b7a7e;
   --color-mint: #7fd1c7;
 
+  /* Status colours, checked with the dataviz palette validator against --color-paper
+     (CVD ΔE ≥ 8, normal-vision ΔE ≥ 15, contrast ≥ 3:1). Always paired with an icon + label. */
   --color-good: #2f7d4f;
-  --color-warn: #b7791f;
-  --color-bad: #b4442f;
+  --color-warn: #b8820a;
+  --color-bad: #b8332a;
+  /* Single-series data colour for charts (passes lightness band + chroma floor). */
+  --color-data: #a3582b;
 
   --font-display: 'Outfit', ui-sans-serif, system-ui, sans-serif;
   --font-sans: 'DM Sans', ui-sans-serif, system-ui, sans-serif;

@@ -103,7 +103,7 @@ export default function Landing() {
               <Button variant="light" size="lg" onClick={openDemo}>
                 Try the demo project <ArrowRight className="size-4" />
               </Button>
-              <ButtonLink to="/app" size="lg" className="border border-white/20 bg-white/10 text-cream hover:bg-white/20">
+              <ButtonLink to="/app" size="lg" variant="glass">
                 Start your own idea
               </ButtonLink>
             </div>
@@ -225,7 +225,7 @@ export default function Landing() {
               <Button variant="light" size="lg" onClick={openDemo}>
                 Walk through the demo <ArrowRight className="size-4" />
               </Button>
-              <ButtonLink to="/report" size="lg" className="border border-white/20 bg-white/10 text-cream hover:bg-white/20">
+              <ButtonLink to="/report" size="lg" variant="glass">
                 <Code2 className="size-4" /> Read the project report
               </ButtonLink>
             </div>
@@ -258,8 +258,8 @@ function ConversationPreview() {
             <Quote className="size-3.5" /> One-liner
           </p>
           <p className="mt-1.5 font-display text-[15px] font-semibold leading-snug text-espresso">
-            CanteenQ helps hostel students get lunch between back-to-back labs by letting them pre-order and pick up in
-            under two minutes.
+            CanteenQ helps first-year hostel students with back-to-back lab sessions grab lunch in the 20-minute break by
+            letting them pre-order and skip the queue.
           </p>
         </div>
       </div>
