@@ -10,6 +10,10 @@ export const SITE = {
   },
 } as const
 
-// Optional backend (Node + Express + MongoDB + Claude). When unset, the app runs
-// fully in the browser with the built-in rule-based co-founder engine.
-export const API_URL: string = (import.meta.env.VITE_API_URL ?? '').replace(/\/$/, '')
+// Optional back end (Node + Express + MongoDB + Claude), chosen at build time:
+//   VITE_API_URL=same-origin            → the API is served from this site's /api (Vercel)
+//   VITE_API_URL=https://example.com    → a separately hosted API (needs CORS)
+//   unset                               → no API: the rule-based co-founder runs in the browser
+const rawApi = String(import.meta.env.VITE_API_URL ?? '').trim()
+export const API_ENABLED = rawApi !== ''
+export const API_URL = rawApi === 'same-origin' ? '' : rawApi.replace(/\/$/, '')

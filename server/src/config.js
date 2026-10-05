@@ -10,6 +10,7 @@ const list = (v) =>
 
 export const config = {
   port: Number(process.env.PORT) || 8080,
+  // Optional: without it, accounts and cloud projects are disabled but the AI chat still works.
   mongoUri: process.env.MONGODB_URI ?? '',
   jwtSecret: process.env.JWT_SECRET ?? '',
   clientOrigins: list(process.env.CLIENT_ORIGIN),
@@ -20,10 +21,7 @@ export const config = {
 }
 
 export function assertConfig() {
-  const missing = []
-  if (!config.mongoUri) missing.push('MONGODB_URI')
-  if (!config.jwtSecret) missing.push('JWT_SECRET')
-  if (missing.length) {
-    throw new Error(`Missing ${missing.join(' and ')}. Copy .env.example to .env and fill it in.`)
+  if (config.mongoUri && !config.jwtSecret) {
+    throw new Error('JWT_SECRET is required when MONGODB_URI is set. Copy .env.example to .env and fill it in.')
   }
 }

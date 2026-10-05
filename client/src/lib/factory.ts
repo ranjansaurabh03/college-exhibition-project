@@ -64,6 +64,7 @@ export function newProject(name: string): Project {
     scoping: emptyScoping(),
     building: emptyBuilding(),
     chat: {},
+    aiChat: {},
   }
 }
 
@@ -83,5 +84,6 @@ export function normalizeProject(p: Partial<Project> & { id: string }): Project 
     scoping: { ...base.scoping, ...p.scoping },
     building: { ...base.building, ...p.building },
     chat: { ...p.chat },
+    aiChat: { ...p.aiChat },
   }
 }

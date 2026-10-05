@@ -14,8 +14,14 @@ interface ProjectsState {
   renameProject: (id: string, name: string) => void
   patch: <K extends StageKey>(id: string, key: K, partial: Partial<StageData[K]>) => void
   setChat: (id: string, stage: StageKey, messages: ChatMessage[]) => void
+  setAiChat: (id: string, stage: StageKey, messages: ChatMessage[]) => void
   importProject: (data: unknown) => string
+  /** Replaces the whole list (used by cloud sync). */
+  replaceAll: (projects: Project[]) => void
 }
+
+/** Keeps synced documents small: the last 40 messages of each stage's AI chat. */
+const MAX_AI_MESSAGES = 40
 
 function touch(p: Project): Project {
   return { ...p, updatedAt: Date.now() }
@@ -69,6 +75,15 @@ export const useProjects = create<ProjectsState>()(
         set({
           projects: get().projects.map((p) => (p.id === id ? touch({ ...p, chat: { ...p.chat, [stage]: messages } }) : p)),
         }),
+
+      setAiChat: (id, stage, messages) =>
+        set({
+          projects: get().projects.map((p) =>
+            p.id === id ? touch({ ...p, aiChat: { ...p.aiChat, [stage]: messages.slice(-MAX_AI_MESSAGES) } }) : p,
+          ),
+        }),
+
+      replaceAll: (projects) => set({ projects }),
 
       importProject: (data) => {
         if (!data || typeof data !== 'object' || !('ideation' in data)) {

@@ -1,6 +1,7 @@
 import { ArrowLeft, Pencil } from 'lucide-react'
 import { lazy, Suspense, useEffect, useState, type ComponentType } from 'react'
 import { Link, Navigate, NavLink, useParams } from 'react-router'
+import { SyncStatus } from '../components/Cloud'
 import { CoFounderPanel } from '../components/CoFounderPanel'
 import { LogoMark } from '../components/Site'
 import { ButtonLink, cx } from '../components/ui'
@@ -75,6 +76,7 @@ function WorkspaceHeader({ project }: { project: Project }) {
           </Link>
           <span className="text-line">/</span>
           <ProjectName project={project} />
+          <SyncStatus className="ml-auto hidden sm:flex" />
         </div>
         <nav aria-label="Stages" className="-mb-px flex gap-1 overflow-x-auto">
           {STAGES.map((s) => (

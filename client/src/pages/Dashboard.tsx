@@ -1,6 +1,7 @@
 import { ArrowRight, Download, FolderOpen, Plus, Sparkles, Trash2, Upload } from 'lucide-react'
 import { useRef, useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router'
+import { CloudCard } from '../components/Cloud'
 import { EngineNote } from '../components/EngineNote'
 import { SiteFooter, SiteHeader } from '../components/Site'
 import { Button, Card, Eyebrow, Pill, TextInput, cx } from '../components/ui'
@@ -75,7 +76,9 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <Card className="mt-8 p-5">
+        <CloudCard className="mt-8" />
+
+        <Card className="mt-4 p-5">
           <form onSubmit={create} className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <label htmlFor="new-idea" className="text-sm font-semibold text-espresso sm:w-40">
               Start a new idea

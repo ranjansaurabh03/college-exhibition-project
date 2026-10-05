@@ -1,5 +1,6 @@
 import { lazy, Suspense } from 'react'
 import { HashRouter, Route, Routes } from 'react-router'
+import { ServerBootstrap } from './components/Cloud'
 import Landing from './pages/Landing'
 
 // Code-split: each area (and each stage inside the workspace) is its own chunk.
@@ -11,6 +12,7 @@ const NotFound = lazy(() => import('./pages/NotFound'))
 export default function App() {
   return (
     <HashRouter>
+      <ServerBootstrap />
       <Suspense fallback={<PageLoader />}>
         <Routes>
           <Route path="/" element={<Landing />} />

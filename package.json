@@ -1,0 +1,9 @@
+{
+  "name": "ai-cofounder",
+  "private": true,
+  "type": "module",
+  "description": "Deployment root for Vercel: the React app in client/ and the Express API in server/ (served from api/).",
+  "engines": {
+    "node": "24.x"
+  }
+}

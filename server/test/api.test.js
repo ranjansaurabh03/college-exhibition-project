@@ -57,6 +57,8 @@ describe('health and auth', () => {
     const res = await request(createApp({ ai: fakeAi({ enabled: false }) })).get('/api/health')
     expect(res.status).toBe(200)
     expect(res.body).toEqual({ ok: true, db: true, ai: false })
+    const status = await request(createApp({ ai: fakeAi() })).get('/api/status')
+    expect(status.body).toEqual({ ai: { enabled: true, model: 'claude-test' }, db: { enabled: true } })
   })
 
   it('registers, rejects duplicates and bad input, and logs in', async () => {
@@ -101,7 +103,7 @@ describe('projects', () => {
       .send({ name: 'CanteenQ', ideation: { targetUser: 'hostel students' }, userId: 'someone-else', hacker: true })
     expect(created.status).toBe(201)
     expect(created.body).toMatchObject({ name: 'CanteenQ', ideation: { targetUser: 'hostel students' } })
-    expect(created.body.id).toBeTruthy()
+    expect(created.body.id).toMatch(/^p_/)
     expect(created.body.userId).toBeUndefined()
     expect(created.body.hacker).toBeUndefined()
     const id = created.body.id
@@ -113,17 +115,36 @@ describe('projects', () => {
     expect(updated.status).toBe(200)
     expect(updated.body.scoping.features[0].name).toBe('Login')
     expect(updated.body.ideation.targetUser).toBe('hostel students')
+    expect(updated.body.name).toBe('CanteenQ')
 
-    // Another user can't see or change it.
+    // Another user can't see, change or delete it. Their PUT creates their own copy instead.
     const other = { Authorization: `Bearer ${await register(app, 'other@college.edu')}` }
     expect((await request(app).get(`/api/projects/${id}`).set(other)).status).toBe(404)
-    expect((await request(app).put(`/api/projects/${id}`).set(other).send({ name: 'x' })).status).toBe(404)
     expect((await request(app).delete(`/api/projects/${id}`).set(other)).status).toBe(404)
-    expect((await request(app).get('/api/projects').set(other)).body).toEqual([])
+    const theirs = await request(app).put(`/api/projects/${id}`).set(other).send({ name: 'Mine' })
+    expect(theirs.status).toBe(200)
+    expect((await request(app).get(`/api/projects/${id}`).set(auth)).body.name).toBe('CanteenQ')
 
-    expect((await request(app).get('/api/projects/not-an-id').set(auth)).status).toBe(400)
+    expect((await request(app).get('/api/projects/bad%20id!').set(auth)).status).toBe(400)
+    expect((await request(app).post('/api/projects').set(auth).send({ id, name: 'Dup' })).status).toBe(409)
     expect((await request(app).delete(`/api/projects/${id}`).set(auth)).status).toBe(204)
     expect((await request(app).get(`/api/projects/${id}`).set(auth)).status).toBe(404)
+  })
+
+  it('syncs with last-write-wins on the device timestamps', async () => {
+    const app = createApp({ ai: fakeAi() })
+    const auth = { Authorization: `Bearer ${await register(app, 'sync@college.edu')}` }
+
+    const first = await request(app).put('/api/projects/demo-canteenq').set(auth).send({ name: 'CanteenQ', createdAt: 1000, updatedAt: 2000, isDemo: true })
+    expect(first.status).toBe(200)
+    expect(first.body).toMatchObject({ id: 'demo-canteenq', name: 'CanteenQ', createdAt: 1000, updatedAt: 2000, isDemo: true })
+
+    const newer = await request(app).put('/api/projects/demo-canteenq').set(auth).send({ name: 'CanteenQ v2', updatedAt: 3000 })
+    expect(newer.body).toMatchObject({ name: 'CanteenQ v2', createdAt: 1000, updatedAt: 3000 })
+
+    const stale = await request(app).put('/api/projects/demo-canteenq').set(auth).send({ name: 'Old edit', updatedAt: 2500 })
+    expect(stale.status).toBe(409)
+    expect(stale.body.project).toMatchObject({ name: 'CanteenQ v2', updatedAt: 3000 })
   })
 })
 
@@ -176,8 +197,15 @@ describe('chat helpers', () => {
     expect(parseChatBody({ stage: 'scoping', messages: [{ role: 'user', content: 'ok', extra: 1 }] }).messages).toEqual([{ role: 'user', content: 'ok' }])
   })
 
-  it('caps AI calls per day', () => {
-    const budget = dailyBudget(2)
-    expect([budget.take(), budget.take(), budget.take()]).toEqual([true, true, false])
+  it('caps AI calls per day in memory when there is no database', async () => {
+    const budget = dailyBudget(2, { useDb: () => false })
+    expect([await budget.take(), await budget.take(), await budget.take()]).toEqual([true, true, false])
+  })
+
+  it('shares the daily cap through MongoDB when connected', async () => {
+    const a = dailyBudget(2)
+    const b = dailyBudget(2) // a second serverless instance
+    await mongoose.connection.collection('usages').deleteMany({})
+    expect([await a.take(), await b.take(), await a.take()]).toEqual([true, true, false])
   })
 })

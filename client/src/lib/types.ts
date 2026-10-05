@@ -106,5 +106,8 @@ export interface Project {
   validation: Validation
   scoping: Scoping
   building: Building
+  /** Guided-interview transcript (rule engine). */
   chat: Partial<Record<StageKey, ChatMessage[]>>
+  /** Conversations with Claude, one per stage. */
+  aiChat: Partial<Record<StageKey, ChatMessage[]>>
 }

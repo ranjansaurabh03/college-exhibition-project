@@ -2,6 +2,8 @@ import { Router } from 'express'
 import { rateLimit } from 'express-rate-limit'
 import { describeClaudeError } from '../ai/claude.js'
 import { config } from '../config.js'
+import { connectDb, dbConnected } from '../db.js'
+import Usage from '../models/Usage.js'
 
 const STAGES = ['ideation', 'validation', 'scoping', 'building']
 
@@ -32,19 +34,34 @@ export function parseChatBody(body) {
   return { stage, project: project && typeof project === 'object' ? project : {}, messages: clean }
 }
 
-/** A global daily budget for AI calls, so a public deployment can't drain the API credit. */
-export function dailyBudget(limit) {
-  let day = ''
-  let used = 0
+/**
+ * A global daily budget for AI calls, so a public deployment can't drain the API credit.
+ * Counted in MongoDB when it's available (shared by every serverless instance),
+ * otherwise in memory.
+ */
+export function dailyBudget(limit, { useDb = dbConnected } = {}) {
+  const memory = { day: '', used: 0 }
   return {
-    take() {
+    async take() {
       const today = new Date().toISOString().slice(0, 10)
-      if (today !== day) {
-        day = today
-        used = 0
+      if (useDb()) {
+        try {
+          const doc = await Usage.findOneAndUpdate(
+            { _id: `ai:${today}` },
+            { $inc: { count: 1 } },
+            { upsert: true, returnDocument: 'after' },
+          )
+          return doc.count <= limit
+        } catch (err) {
+          console.error('AI usage counter failed, using the in-memory count:', err.message)
+        }
       }
-      if (used >= limit) return false
-      used++
+      if (today !== memory.day) {
+        memory.day = today
+        memory.used = 0
+      }
+      if (memory.used >= limit) return false
+      memory.used++
       return true
     },
   }
@@ -70,7 +87,10 @@ export function aiRoutes(ai) {
   router.post('/chat', perIp, async (req, res) => {
     if (!ai.enabled()) return res.status(503).json({ error: 'The co-founder chat is not configured on this server.' })
     const body = parseChatBody(req.body)
-    if (!budget.take()) return res.status(429).json({ error: 'Today’s AI limit has been reached. Try again tomorrow.' })
+    await connectDb().catch(() => false) // so the daily budget is shared across instances when possible
+    if (!(await budget.take())) {
+      return res.status(429).json({ error: 'Today’s AI limit has been reached. Try again tomorrow.' })
+    }
 
     res.writeHead(200, {
       'Content-Type': 'text/event-stream; charset=utf-8',
@@ -98,7 +118,10 @@ export function aiRoutes(ai) {
         send({ type: 'done', stopReason: final.stop_reason, model: final.model })
       }
     } catch (err) {
-      if (!abort.signal.aborted) send({ type: 'error', message: describeClaudeError(err) })
+      if (!abort.signal.aborted) {
+        console.error('Claude request failed:', err?.status ?? '', err?.message)
+        send({ type: 'error', message: describeClaudeError(err) })
+      }
     } finally {
       res.end()
     }
