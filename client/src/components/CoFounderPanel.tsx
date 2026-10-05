@@ -32,8 +32,11 @@ export function focusField(field: string) {
   window.setTimeout(() => el.focus({ preventScroll: true }), 350)
 }
 
+const LEVEL_ORDER: Record<Challenge['level'], number> = { block: 0, warn: 1, tip: 2 }
+
 export function CoFounderPanel({ project, stage }: { project: Project; stage: StageKey }) {
-  const challenges = challengesFor(project, stage)
+  // Most important first; the engine's own order is kept within each level.
+  const challenges = challengesFor(project, stage).sort((a, b) => LEVEL_ORDER[a.level] - LEVEL_ORDER[b.level])
   const blocking = challenges.filter((c) => c.level === 'block').length
   const idx = STAGES.findIndex((s) => s.key === stage)
   const next = STAGES[idx + 1]
