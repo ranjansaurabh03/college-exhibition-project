@@ -1,8 +1,9 @@
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import { HashRouter, Route, Routes } from 'react-router'
 import { ServerBootstrap } from './components/Cloud'
 import { CommandPalette } from './components/CommandPalette'
 import { Toaster } from './components/Toaster'
+import { prefetchAfterLoad, prefetchDashboard, prefetchWorkspace } from './lib/prefetch'
 import Landing from './pages/Landing'
 
 // Code-split: each area (and each stage inside the workspace) is its own chunk.
@@ -12,6 +13,16 @@ const Report = lazy(() => import('./pages/Report'))
 const NotFound = lazy(() => import('./pages/NotFound'))
 
 export default function App() {
+  // Warm the pages a visitor opens next, so starting an idea or opening the workspace has no wait.
+  useEffect(
+    () =>
+      prefetchAfterLoad(() => {
+        prefetchWorkspace()
+        prefetchDashboard()
+      }),
+    [],
+  )
+
   return (
     <HashRouter>
       <div className="app-backdrop" aria-hidden="true" />

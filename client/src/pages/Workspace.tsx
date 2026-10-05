@@ -6,6 +6,7 @@ import { ASK_AI_EVENT } from '../components/CommandPalette'
 import { CoFounderPanel } from '../components/CoFounderPanel'
 import { LogoMark, PaletteButton, ThemeToggle } from '../components/Site'
 import { Button, ButtonLink, cx } from '../components/ui'
+import { prefetchAfterLoad } from '../lib/prefetch'
 import { stageProgress } from '../lib/progress'
 import { useServer } from '../lib/server'
 import { isStageKey, stageMeta, STAGES } from '../lib/stages'
@@ -17,17 +18,26 @@ export interface StageProps {
   project: Project
 }
 
-// Code-split per stage: each stage view is its own chunk.
+// Code-split per stage: each stage view is its own chunk, prefetched once the workspace is open so
+// switching stages never waits on the network (until a chunk arrives, the router keeps the old stage on screen).
+const LOADERS: Record<StageKey, () => Promise<{ default: ComponentType<StageProps> }>> = {
+  ideation: () => import('./stages/Ideation'),
+  validation: () => import('./stages/Validation'),
+  scoping: () => import('./stages/Scoping'),
+  building: () => import('./stages/Building'),
+}
 const STAGE_VIEWS: Record<StageKey, ComponentType<StageProps>> = {
-  ideation: lazy(() => import('./stages/Ideation')),
-  validation: lazy(() => import('./stages/Validation')),
-  scoping: lazy(() => import('./stages/Scoping')),
-  building: lazy(() => import('./stages/Building')),
+  ideation: lazy(LOADERS.ideation),
+  validation: lazy(LOADERS.validation),
+  scoping: lazy(LOADERS.scoping),
+  building: lazy(LOADERS.building),
 }
 
 export default function Workspace() {
   const { projectId, stage } = useParams()
   const project = useProject(projectId)
+
+  useEffect(() => prefetchAfterLoad(() => Object.values(LOADERS).forEach((load) => void load().catch(() => {}))), [])
 
   useEffect(() => {
     if (project) document.title = `${project.name} · AI Co-Founder`
