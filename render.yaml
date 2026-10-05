@@ -1,0 +1,26 @@
+# Render Blueprint: deploys the API in /server as a free web service.
+# Render dashboard → New → Blueprint → pick this repository, then fill in the secret values.
+services:
+  - type: web
+    name: ai-cofounder-api
+    runtime: node
+    plan: free
+    rootDir: server
+    buildCommand: npm ci --omit=dev
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: "24"
+      - key: MONGODB_URI
+        sync: false # MongoDB Atlas connection string
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CLIENT_ORIGIN
+        value: https://ranjansaurabh03.github.io
+      - key: ANTHROPIC_API_KEY
+        sync: false # optional: enables the Claude co-founder chat
+      - key: CLAUDE_MODEL
+        value: claude-opus-5
+      - key: AI_DAILY_LIMIT
+        value: "300"

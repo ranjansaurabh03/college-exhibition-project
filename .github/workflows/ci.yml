@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  server:
+    name: API tests (Express + MongoDB)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+      - run: npm ci
+      - run: npm test
+
+  generated-starter:
+    name: Generated MERN starter runs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+      - name: Generate the demo project's starter
+        working-directory: client
+        run: |
+          npm ci
+          EMIT_DIR="$RUNNER_TEMP/starter" npx vitest run codegen
+      - name: Install the generated API
+        run: npm install --prefix "$RUNNER_TEMP/starter/server"
+      - name: Build the generated web app
+        run: |
+          npm install --prefix "$RUNNER_TEMP/starter/client"
+          npm run build --prefix "$RUNNER_TEMP/starter/client"
+      - name: Exercise the generated API against MongoDB
+        working-directory: tools/verify-starter
+        run: |
+          npm install
+          node verify.mjs "$RUNNER_TEMP/starter/server"

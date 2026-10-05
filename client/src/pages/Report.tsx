@@ -236,7 +236,8 @@ function ArchitectureSection() {
       <p>
         The deployed site is a static React app: the co-founder engine runs in the browser, so the demo works for anyone,
         offline, with no sign-up and no API key. The repository also contains the Node, Express and MongoDB back end
-        described in the deck, with tests. Hosting it adds accounts, cloud storage and Claude-powered chat.
+        described in the deck (accounts, project storage and a Claude chat endpoint), covered by automated tests. It runs
+        locally today; hosting it and connecting the live site is the next step, and a Render blueprint is included.
       </p>
       <div className="flex flex-col gap-3 lg:flex-row">
         {tiers.map((t) => (
@@ -384,7 +385,7 @@ function TestingSection() {
           value={results && results !== 'missing' ? `${results.numPassedTests} / ${results.numPassedTests + results.numFailedTests}` : '—'}
           sub={results && results !== 'missing' ? `Run in CI before this deploy · ${new Date(results.startTime).toLocaleDateString()}` : 'Published by the CI build'}
         />
-        <StatTile label="Generated API checks" value="24 / 24" sub="Starter run against a real MongoDB" />
+        <StatTile label="Generated API checks" value="24 / 24" sub="Starter run against MongoDB, re-checked by CI" />
         <StatTile label="Deploys gated on tests" value="Every push" sub="GitHub Actions: test → build → deploy" />
       </div>
       {files.length ? (
@@ -402,6 +403,11 @@ function TestingSection() {
           </ul>
         </Card>
       ) : null}
+      <p>
+        <strong>The API has its own suite</strong> (Vitest, Supertest and an in-memory MongoDB): registration and login,
+        rejected tokens, project CRUD restricted to the owner, input validation, the streamed chat format, refusal and
+        error handling, the daily AI cap, and the exact request the real Anthropic SDK sends. CI runs it on every push.
+      </p>
       <p>
         <strong>Generated code is executed, not just generated.</strong> The CanteenQ starter was emitted, installed and
         run against an in-memory MongoDB: registration, login, wrong password, missing token, CRUD, validation errors,
@@ -498,7 +504,7 @@ function LimitsSection() {
 
 function FutureSection() {
   const items: [typeof Cpu, string, string][] = [
-    [Cpu, 'LLM co-founder chat', 'Host the API with a Claude key: the chat endpoint, prompts and streaming already exist in /server.'],
+    [Cpu, 'LLM co-founder chat', 'Host the API with a Claude key and connect the co-founder panel to it. The endpoint, prompt and streaming already exist in /server.'],
     [Database, 'Cloud projects and teams', 'MongoDB Atlas + JWT accounts so co-founders can work on the same idea from any device.'],
     [FlaskConical, 'Live validation data', 'Collect landing-page sign-ups and survey answers directly instead of typing the numbers in.'],
     [ShieldCheck, 'One-click GitHub repo', 'Push the generated starter straight to a new GitHub repository with CI already set up.'],

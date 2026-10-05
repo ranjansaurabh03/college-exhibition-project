@@ -1,0 +1,9 @@
+{
+  "name": "verify-starter",
+  "private": true,
+  "type": "module",
+  "description": "Runs the generated MERN starter's API against a real (in-memory) MongoDB.",
+  "dependencies": {
+    "mongodb-memory-server": "^11.3.0"
+  }
+}
