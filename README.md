@@ -121,8 +121,9 @@ npm test
   (`.github/workflows/deploy.yml`). With the repository variable `VITE_API_URL` set to the Vercel URL, the mirror
   uses the same API.
 
-The AI uses `gemini-3.5-flash-lite` by default (about a second to the first token) and falls back to
-`gemini-3.5-flash` if the first model is busy. A per-IP rate limit and a daily cap (`AI_DAILY_LIMIT`, counted in
+The AI uses `gemini-3.5-flash-lite` by default and falls back to `gemini-3.5-flash` if the first model is busy.
+Chat replies think a little (`GEMINI_THINKING=low`, about a second to the first token); stage drafts fill a fixed schema
+with minimal thinking (`GEMINI_DRAFT_THINKING=minimal`), which roughly halves their wait. A per-IP rate limit and a daily cap (`AI_DAILY_LIMIT`, counted in
 MongoDB when it is connected) keep a public deployment inside the free tier.
 
 ## Testing

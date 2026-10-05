@@ -20,6 +20,8 @@ export const config = {
   geminiModel: process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite',
   geminiFallbackModel: process.env.GEMINI_FALLBACK_MODEL || 'gemini-3.5-flash',
   geminiThinking: process.env.GEMINI_THINKING || 'low',
+  // Drafts fill a fixed schema, so they skip most of the thinking: about half the wait, same quality.
+  geminiDraftThinking: process.env.GEMINI_DRAFT_THINKING || 'minimal',
   geminiBaseUrl: process.env.GEMINI_BASE_URL ?? '',
   aiDailyLimit: Number(process.env.AI_DAILY_LIMIT) || 300,
   isTest: Boolean(process.env.VITEST),

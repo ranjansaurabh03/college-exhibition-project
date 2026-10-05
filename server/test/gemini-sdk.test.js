@@ -130,6 +130,7 @@ describe('Gemini drafts through the real SDK', () => {
     const { body } = requests[0]
     expect(body.response_format).toMatchObject({ type: 'text', mime_type: 'application/json' })
     expect(body.response_format.schema.required).toEqual(['entityName', 'fields'])
+    expect(body.generation_config).toMatchObject({ thinking_level: 'minimal' })
     expect(body.store).toBe(false)
   })
 })

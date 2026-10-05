@@ -35,7 +35,7 @@ function toSteps(messages) {
   }))
 }
 
-const generation = (maxTokens) => ({ thinking_level: config.geminiThinking, max_output_tokens: maxTokens })
+const generation = (maxTokens, thinking) => ({ thinking_level: thinking, max_output_tokens: maxTokens })
 // No silent SDK retries: on a quota or overload error we switch to the fallback model straight away.
 const requestOptions = (signal) => ({ retries: { strategy: 'none' }, fetchOptions: { signal } })
 
@@ -61,7 +61,7 @@ export const gemini = {
             system_instruction: `${SYSTEM_PROMPT}\n\n${projectContext(stage, project)}`,
             stream: true,
             store: false,
-            generation_config: generation(4096),
+            generation_config: generation(4096, config.geminiThinking),
           },
           requestOptions(signal),
         )
@@ -99,7 +99,7 @@ export const gemini = {
             system_instruction: SYSTEM_PROMPT,
             store: false,
             response_format: { type: 'text', mime_type: 'application/json', schema: DRAFT_SCHEMAS[stage] },
-            generation_config: generation(4096),
+            generation_config: generation(4096, config.geminiDraftThinking),
           },
           requestOptions(signal),
         )
