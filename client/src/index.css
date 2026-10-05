@@ -7,7 +7,7 @@
   --color-paper: #fffdf9;
   --color-sand: #ece2d5;
   --color-tan: #c4a484;
-  --color-clay: #9a7149;
+  --color-clay: #85603a; /* ≥ 4.5:1 on cream, paper and sand for small text */
   --color-cocoa: #6b3f22;
   --color-espresso: #2e1a0f;
   --color-ink: #231d19;

@@ -113,125 +113,128 @@ export default function Landing() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
-        <div className="grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
-          <div>
-            <Eyebrow>Why founders need an AI co-founder</Eyebrow>
-            <h2 className="mt-3 text-3xl font-bold text-espresso sm:text-4xl">Single-purpose tools solve one problem at a time.</h2>
-            <p className="mt-4 text-lg leading-relaxed text-muted">
-              Founders get a code generator, a design tool and a planning template, and still nobody asks whether the
-              idea is worth building. A co-founder stays with you across the whole 0-to-1 journey and pushes back
-              before you waste weeks.
-            </p>
-          </div>
-          <div className="grid gap-3 sm:grid-cols-3">
-            {[
-              { label: 'Just code', note: 'Writes features you may not need' },
-              { label: 'Just design', note: 'Polishes screens nobody validated' },
-              { label: 'Just planning', note: 'Plans without questioning the idea' },
-            ].map((t) => (
-              <Card key={t.label} className="p-5">
-                <p className="font-display text-lg font-bold text-espresso">{t.label}</p>
-                <p className="mt-1 text-sm text-muted">{t.note}</p>
-              </Card>
-            ))}
-            <Card className="border-cocoa bg-cocoa p-5 text-cream sm:col-span-3">
-              <p className="font-display text-lg font-bold">A co-founder</p>
-              <p className="mt-1 text-sm text-cream/80">
-                Asks who the user is, demands evidence of demand, cuts scope and then writes the code for what is left.
+      <main>
+        <section className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
+          <div className="grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
+            <div>
+              <Eyebrow>Why founders need an AI co-founder</Eyebrow>
+              <h2 className="mt-3 text-3xl font-bold text-espresso sm:text-4xl">Single-purpose tools solve one problem at a time.</h2>
+              <p className="mt-4 text-lg leading-relaxed text-muted">
+                Founders get a code generator, a design tool and a planning template, and still nobody asks whether the
+                idea is worth building. A co-founder stays with you across the whole 0-to-1 journey and pushes back
+                before you waste weeks.
               </p>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-      <section className="border-y border-line bg-paper">
-        <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
-          <Eyebrow>The four stages</Eyebrow>
-          <h2 className="mt-3 max-w-2xl text-3xl font-bold text-espresso sm:text-4xl">
-            Each stage asks the right questions and cuts unnecessary work.
-          </h2>
-          <div className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
-            {STAGES.map((s) => (
-              <Card key={s.n} className="flex flex-col p-6">
-                <div className="flex items-center justify-between">
-                  <span className="grid size-11 place-items-center rounded-xl bg-sand text-cocoa">
-                    <s.icon className="size-5" />
-                  </span>
-                  <span className="font-display text-4xl font-extrabold text-sand">0{s.n}</span>
-                </div>
-                <h3 className="mt-5 text-xl font-bold text-espresso">
-                  Stage {s.n}: {s.title}
-                </h3>
-                <p className="mt-1.5 text-sm text-muted">{s.lead}</p>
-                <ul className="mt-4 space-y-2 text-sm">
-                  {s.asks.map((q) => (
-                    <li key={q} className="flex gap-2">
-                      <MessageSquare className="mt-0.5 size-4 shrink-0 text-tan" />
-                      <span>{q}</span>
-                    </li>
-                  ))}
-                </ul>
-                <p className="mt-auto pt-5 text-xs font-semibold uppercase tracking-wider text-clay">{s.gives}</p>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-3">
+              {[
+                { label: 'Just code', note: 'Writes features you may not need' },
+                { label: 'Just design', note: 'Polishes screens nobody validated' },
+                { label: 'Just planning', note: 'Plans without questioning the idea' },
+              ].map((t) => (
+                <Card key={t.label} className="p-5">
+                  <p className="font-display text-lg font-bold text-espresso">{t.label}</p>
+                  <p className="mt-1 text-sm text-muted">{t.note}</p>
+                </Card>
+              ))}
+              <Card className="border-cocoa bg-cocoa p-5 text-cream sm:col-span-3">
+                <p className="font-display text-lg font-bold">A co-founder</p>
+                <p className="mt-1 text-sm text-cream/80">
+                  Asks who the user is, demands evidence of demand, cuts scope and then writes the code for what is left.
+                </p>
               </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
-        <Eyebrow>What you walk away with</Eyebrow>
-        <h2 className="mt-3 max-w-2xl text-3xl font-bold text-espresso sm:text-4xl">Concrete outputs at every stage.</h2>
-        <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {OUTPUTS.map((o) => (
-            <div key={o.title} className="rounded-2xl border border-line bg-paper p-5">
-              <o.icon className="size-5 text-teal" />
-              <p className="mt-3 font-display font-bold text-espresso">{o.title}</p>
-              <p className="mt-1 text-sm leading-relaxed text-muted">{o.body}</p>
             </div>
-          ))}
-        </div>
-      </section>
-
-      <section className="border-y border-line bg-sand/50">
-        <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-12 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <Eyebrow>Built with the stack it recommends</Eyebrow>
-            <p className="mt-2 max-w-md text-sm text-muted">
-              The app itself is the MERN architecture it teaches: a code-split React front end with an optional Node,
-              Express and MongoDB API.
-            </p>
           </div>
-          <ul className="flex flex-wrap gap-2">
-            {STACK.map((t) => (
-              <li key={t} className="rounded-full border border-line bg-paper px-3 py-1.5 text-sm font-semibold text-espresso">
-                {t}
-              </li>
-            ))}
-          </ul>
-        </div>
-      </section>
+        </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
-        <div className="hero-gradient relative overflow-hidden rounded-3xl px-6 py-14 text-center text-cream sm:px-12">
-          <CircuitDecor />
-          <div className="relative z-10">
-            <h2 className="font-display text-3xl font-extrabold sm:text-5xl">
-              Start your journey.
-              <br />
-              Build your MVP today.
+        <section className="border-y border-line bg-paper">
+          <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
+            <Eyebrow>The four stages</Eyebrow>
+            <h2 className="mt-3 max-w-2xl text-3xl font-bold text-espresso sm:text-4xl">
+              Each stage asks the right questions and cuts unnecessary work.
             </h2>
-            <div className="mt-8 flex flex-wrap justify-center gap-3">
-              <Button variant="light" size="lg" onClick={openDemo}>
-                Walk through the demo <ArrowRight className="size-4" />
-              </Button>
-              <ButtonLink to="/report" size="lg" variant="glass">
-                <Code2 className="size-4" /> Read the project report
-              </ButtonLink>
+            <div className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
+              {STAGES.map((s) => (
+                <Card key={s.n} className="flex flex-col p-6">
+                  <div className="flex items-center justify-between">
+                    <span className="grid size-11 place-items-center rounded-xl bg-sand text-cocoa">
+                      <s.icon className="size-5" />
+                    </span>
+                    {/* Decorative numeral, drawn with CSS so it isn't read as content. */}
+                    <span aria-hidden="true" data-n={`0${s.n}`} className="font-display text-4xl font-extrabold text-sand after:content-[attr(data-n)]" />
+                  </div>
+                  <h3 className="mt-5 text-xl font-bold text-espresso">
+                    Stage {s.n}: {s.title}
+                  </h3>
+                  <p className="mt-1.5 text-sm text-muted">{s.lead}</p>
+                  <ul className="mt-4 space-y-2 text-sm">
+                    {s.asks.map((q) => (
+                      <li key={q} className="flex gap-2">
+                        <MessageSquare className="mt-0.5 size-4 shrink-0 text-tan" />
+                        <span>{q}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="mt-auto pt-5 text-xs font-semibold uppercase tracking-wider text-clay">{s.gives}</p>
+                </Card>
+              ))}
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+
+        <section className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
+          <Eyebrow>What you walk away with</Eyebrow>
+          <h2 className="mt-3 max-w-2xl text-3xl font-bold text-espresso sm:text-4xl">Concrete outputs at every stage.</h2>
+          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {OUTPUTS.map((o) => (
+              <div key={o.title} className="rounded-2xl border border-line bg-paper p-5">
+                <o.icon className="size-5 text-teal" />
+                <p className="mt-3 font-display font-bold text-espresso">{o.title}</p>
+                <p className="mt-1 text-sm leading-relaxed text-muted">{o.body}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="border-y border-line bg-sand/50">
+          <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-12 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <Eyebrow>Built with the stack it recommends</Eyebrow>
+              <p className="mt-2 max-w-md text-sm text-muted">
+                The app itself is the MERN architecture it teaches: a code-split React front end with an optional Node,
+                Express and MongoDB API.
+              </p>
+            </div>
+            <ul className="flex flex-wrap gap-2">
+              {STACK.map((t) => (
+                <li key={t} className="rounded-full border border-line bg-paper px-3 py-1.5 text-sm font-semibold text-espresso">
+                  {t}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+
+        <section className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
+          <div className="hero-gradient relative overflow-hidden rounded-3xl px-6 py-14 text-center text-cream sm:px-12">
+            <CircuitDecor />
+            <div className="relative z-10">
+              <h2 className="font-display text-3xl font-extrabold sm:text-5xl">
+                Start your journey.
+                <br />
+                Build your MVP today.
+              </h2>
+              <div className="mt-8 flex flex-wrap justify-center gap-3">
+                <Button variant="light" size="lg" onClick={openDemo}>
+                  Walk through the demo <ArrowRight className="size-4" />
+                </Button>
+                <ButtonLink to="/report" size="lg" variant="glass">
+                  <Code2 className="size-4" /> Read the project report
+                </ButtonLink>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
 
       <SiteFooter />
     </div>
