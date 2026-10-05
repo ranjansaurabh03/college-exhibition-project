@@ -11,7 +11,7 @@ function highlight(code: string): ReactNode[] {
   for (const m of code.matchAll(TOKEN)) {
     const i = m.index ?? 0
     if (i > last) out.push(code.slice(last, i))
-    const cls = m[1] ? 'text-[#8a7f75] italic' : m[2] ? 'text-[#2f7d4f]' : m[3] ? 'text-[#a3582b] font-semibold' : 'text-[#1b6f8a]'
+    const cls = m[1] ? 'text-(--code-comment) italic' : m[2] ? 'text-(--code-string)' : m[3] ? 'text-(--code-keyword)' : 'text-(--code-number)'
     out.push(
       <span key={k++} className={cls}>
         {m[0]}
@@ -27,8 +27,8 @@ export function CodeViewer({ path, code }: { path: string; code: string }) {
   const plain = /\.(md|example)$|gitignore$/.test(path)
   const lineCount = code.split('\n').length
   return (
-    <div className="flex min-w-0 overflow-auto bg-[#fffdf9] font-mono text-[12.5px] leading-[1.65] [font-variant-ligatures:none]">
-      <pre aria-hidden="true" className="select-none border-r border-line bg-cream/60 px-3 py-3 text-right text-muted/70">
+    <div className="flex min-w-0 overflow-auto bg-field font-mono text-[12.5px] leading-[1.65] [font-variant-ligatures:none]">
+      <pre aria-hidden="true" className="sticky left-0 select-none border-r border-line bg-field px-3 py-3 text-right text-muted/60">
         {Array.from({ length: lineCount }, (_, i) => (
           <Fragment key={i}>
             {i + 1}
@@ -36,7 +36,7 @@ export function CodeViewer({ path, code }: { path: string; code: string }) {
           </Fragment>
         ))}
       </pre>
-      <pre className="min-w-0 flex-1 px-4 py-3 text-ink">
+      <pre className="min-w-0 flex-1 px-4 py-3 text-strong/90">
         <code>{plain ? code : highlight(code)}</code>
       </pre>
     </div>

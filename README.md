@@ -4,134 +4,142 @@
 right question at every stage of the 0-to-1 journey, pushes back on vague ideas, cuts scope, and then generates real
 starter code for what is left.
 
-- **Live app:** https://ranjansaurabh03.github.io/college-exhibition-project/
-- **Project report:** https://ranjansaurabh03.github.io/college-exhibition-project/#/report (architecture, how the
-  co-founder decides, measured performance, tests, SWOT, limitations)
+- **Live app:** https://ai-cofounder-indol.vercel.app
+- **Project report:** https://ai-cofounder-indol.vercel.app/#/report (architecture, how the co-founder decides,
+  measured performance, tests, SWOT, limitations)
 
-No sign-up and no API key needed. Projects are saved in your browser.
+No sign-up needed. Type an idea and Google Gemini drafts the first canvas in a few seconds; a rule engine in the
+browser checks every answer. Projects are saved in your browser.
 
 ## The four stages
 
 | Stage | The co-founder asks | You walk away with |
 | --- | --- | --- |
-| **1. Ideation** | Who exactly is the user? What is the pain, how often, how bad? How is it solved today? Does it need to exist? | Guided interview, idea scorecard, a linted one-liner: “[Product] helps [user] do [outcome] by [approach]” |
+| **1. Ideation** | Who exactly is the user? What is the pain, how often, how bad? How is it solved today? Does it need to exist? | AI-drafted canvas, guided interview, idea scorecard, a linted one-liner: “[Product] helps [user] do [outcome] by [approach]” |
 | **2. Validation** | Would strangers sign up? Is that polite interest or genuine intent? Will anyone pay? | Landing page (downloadable HTML), outreach kit, survey, signal report, reply classifier |
 | **3. Scoping** | Does this feature change whether someone pays? Is it in the one core flow? Can v1 ship in 3 weeks? | Keep / later / cut board, timeline vs target, smallest shippable unit, MVP boundary |
 | **4. Building** | What is the one core object? Which routes and pages are needed? | Architecture map and a generated MERN starter (Express + Mongoose + JWT + React) as a .zip |
 
+On every stage, **Draft with AI** asks Gemini to fill the empty fields (never overwriting yours, with an Undo), and the
+**Ask AI** panel answers questions with the current canvas as context.
+
 ## Demo script (3 minutes)
 
-1. Open the live app and click **Try the demo project**. It loads *CanteenQ*, a campus canteen pre-ordering idea, with all
-   four stages filled in.
-2. **Ideation:** show the scorecard (92/100) and the one-liner. Then go to **All ideas**, create a new idea, click
-   **Interview me** and answer “students” to *Who exactly is the user?*. The co-founder pushes back: “Students is an
-   audience, not a user.” Give a sharper answer and watch the canvas fill in.
-3. **Validation:** the landing page is generated from the one-liner (try **Open**). In **Signals**, show the
-   benchmarks and the reply classifier separating polite interest from genuine intent.
-4. **Scoping:** click **Add the usual wish-list**, answer the pay test for a few features and watch most of them get
-   cut. Point at the timeline check against the 3-week target.
-5. **Building:** change a field in the data model and the generated code updates live. Click **Download .zip**: it is a
-   runnable MERN project.
-6. Finish on the **Project report**: measured bundle sizes, test results from CI, and the corrected SWOT.
+1. Open the live app, type an idea into the box (or click a chip such as **Laundry queue**) and press Enter. Gemini
+   drafts the Ideation canvas and names the product; the scorecard and one-liner update as it lands.
+2. In the co-founder panel, click **What is the weakest part of my idea?** The answer streams in and refers to your
+   own canvas.
+3. **Validation:** click **Draft with AI** for the landing-page copy, then **Open** the generated page. In
+   **Signals**, show the benchmarks and the reply classifier separating polite interest from genuine intent.
+4. **Scoping:** draft the features, answer the pay test and watch the timeline check against the 3-week target.
+5. **Building:** draft the data model; the generated code updates live. **Download .zip** gives a runnable MERN
+   project.
+6. Press **Ctrl K** (⌘K on a Mac) for the command palette, then finish on the **Project report**: live status,
+   measured bundle sizes, test results and the corrected SWOT.
+
+For a finished example, **Load demo project** on the Workspace page opens *CanteenQ* with all four stages filled in.
 
 ## Architecture
 
 ```
-┌──────────────────────────────┐      ┌───────────────────────────┐      ┌──────────────┐
-│ React SPA (GitHub Pages)     │ REST │ Node.js + Express 5 API   │      │ MongoDB      │
-│ • Vite 8, React 19, TS       │ (not │ • JWT auth, bcrypt        │      │ • users      │
-│ • Tailwind 4, React Router 8 │ yet) │ • /api/projects CRUD      │ ───▶ │ • projects   │
-│ • Zustand (localStorage)     │      │ • /api/ai/chat → Claude   │      │   (flexible  │
-│ • Rule-based co-founder      │      │   (SSE stream, rate-      │      │   sub-docs)  │
-│   engine (pure functions)    │      │   limited, daily cap)     │      │              │
-└──────────────────────────────┘      └───────────────────────────┘      └──────────────┘
-        live today                          in /server, tested                Atlas when hosted
+┌──────────────────────────────┐ same  ┌───────────────────────────────┐      ┌──────────────────┐
+│ React SPA (Vercel CDN)       │ origin│ Express 5 API                 │ ───▶ │ Google Gemini    │
+│ • Vite 8, React 19, TS       │ /api  │ (Vercel serverless function)  │      │ 3.5 Flash Lite   │
+│ • Tailwind 4, React Router 8 │ ────▶ │ • /api/ai/chat  (SSE stream)  │      │ + Flash fallback │
+│ • Zustand (localStorage)     │       │ • /api/ai/draft (JSON schema) │      └──────────────────┘
+│ • Rule engine (pure funcs)   │       │ • /api/auth, /api/projects    │ ───▶ MongoDB Atlas
+│ • Command palette, toasts    │       │ • rate limit + daily budget   │      (optional: cloud sync)
+└──────────────────────────────┘       └───────────────────────────────┘
 ```
 
-The deployed site runs the co-founder engine entirely in the browser, so the demo always works. The back end in
-`/server` (accounts, cloud projects, Claude-powered chat) is built and tested, but **the live site does not call it
-yet**: hosting the API (see below) and then wiring the client to it are two separate next steps.
+One Vercel project serves both halves: the client as static files and `api/index.js` (the Express app from `/server`)
+as a serverless function on the same domain. The Gemini key exists only on the server. If the AI is unavailable or the
+daily budget is spent, every stage keeps working with the rule engine. Cloud sync switches on when `MONGODB_URI` is set.
 
-### The co-founder engine
+### Who decides what
 
-On the live site the co-founder is a transparent rule engine in `client/src/lib/engine/`, not a language model. Every
-judgement traces to a rule, so it is explainable, testable and never makes things up:
-
-- `ideation.ts`: vague-user detection, the idea scorecard, one-liner lint, the guided interview
-- `validation.ts`: landing copy and HTML, outreach kit, survey, signal benchmarks, reply classifier
-- `scoping.ts`: the pay test (keep / later / cut), timeline with a 25% buffer, scope pushbacks
-- `codegen.ts`: generates the MERN starter from the scoped MVP and data model
+- **Gemini writes.** `server/src/ai/` holds the system prompt, the per-stage JSON schemas and the streaming client
+  (`@google/genai`, Interactions API). Drafts are clipped and checked on the server (`drafts.js`), and the browser fills
+  only empty fields (`client/src/lib/drafts.ts`).
+- **Rules judge.** `client/src/lib/engine/` is a transparent rule engine, so every score and warning is explainable
+  and tested:
+  - `ideation.ts`: vague-user detection, the idea scorecard, one-liner lint, the guided interview
+  - `validation.ts`: landing copy and HTML, outreach kit, survey, signal benchmarks, reply classifier
+  - `scoping.ts`: the pay test (keep / later / cut), timeline with a 25% buffer, scope pushbacks
+  - `codegen.ts`: generates the MERN starter from the scoped MVP and data model
 
 ## Project structure
 
 ```
-client/                    React app (deployed to GitHub Pages)
+api/index.js               Vercel entry: exports the Express app
+vercel.json                install, test, build and routing for Vercel
+client/                    React app
   src/lib/engine/          co-founder rules + unit tests
   src/pages/               Landing, Dashboard, Workspace (+ stages/), Report
   vite.config.ts           build, plus build-stats.json for the report
-server/                    Express + MongoDB + Claude API
+server/                    Express + MongoDB + Gemini
   src/routes/              auth, projects, ai
-  src/ai/                  system prompt and Claude streaming client
+  src/ai/                  system prompt, draft schemas, Gemini streaming client
   test/                    API tests (in-memory MongoDB) + real-SDK request test
 tools/verify-starter/      boots the generated starter against MongoDB in CI
-.github/workflows/         deploy.yml (test → build → Pages), ci.yml (API + generated code)
-render.yaml                one-click back-end deploy on Render
+.github/workflows/         deploy.yml (GitHub Pages mirror), ci.yml (API + generated code)
+render.yaml                alternative: the API alone on Render
 ```
 
 ## Run it locally
 
-Requirements: Node.js 22.22+ (24 recommended).
+Requirements: Node.js 22.22+ (24 recommended) and a free Gemini API key from https://aistudio.google.com/apikey.
 
 ```bash
-# Web app → http://localhost:5173
-cd client
+# API → http://localhost:8080
+cd server
+cp .env.example .env      # set GEMINI_API_KEY; MONGODB_URI and JWT_SECRET are optional
 npm install
 npm run dev
 
-# Tests (engine unit tests)
+# API tests (they start their own in-memory MongoDB and a fake Gemini, no setup needed)
 npm test
 ```
 
 ```bash
-# API → http://localhost:8080 (needs MongoDB: local, or a free Atlas cluster)
-cd server
-cp .env.example .env      # set MONGODB_URI and JWT_SECRET; ANTHROPIC_API_KEY is optional
+# Web app → http://localhost:5173, talking to the local API
+cd client
 npm install
-npm run dev
+VITE_API_URL=http://localhost:8080 npm run dev   # leave VITE_API_URL unset for the rule engine only
 
-# API tests (start their own in-memory MongoDB, no setup needed)
+# Engine unit tests
 npm test
 ```
 
 ## Deployment
 
-- **Web app:** every push to `main` runs the tests, builds the client and publishes it to GitHub Pages
-  (`.github/workflows/deploy.yml`).
-- **API (optional):**
-  1. Create a free MongoDB Atlas cluster and copy its connection string.
-  2. On Render: **New → Blueprint**, pick this repository (`render.yaml` is detected) and fill in `MONGODB_URI` and,
-     optionally, `ANTHROPIC_API_KEY`.
-  3. Check `https://<your-service>.onrender.com/api/health` returns `{ "ok": true, "db": true }`.
-  4. Hosting alone doesn’t change the live site: the client still needs to be connected to the API (login, cloud
-     projects and the chat panel) before it uses it.
+- **Vercel (main site):** `vercel.json` installs both packages, runs the client tests, builds the client with
+  `VITE_API_URL=same-origin` and deploys `api/index.js` as a function. Environment variables: `GEMINI_API_KEY`
+  (secret), `JWT_SECRET`, `CLIENT_ORIGIN`, and optionally `MONGODB_URI`, `GEMINI_MODEL`, `AI_DAILY_LIMIT`.
+  Deploy with `npx vercel deploy --prod`.
+- **GitHub Pages (mirror):** every push to `main` runs the tests and publishes the client
+  (`.github/workflows/deploy.yml`). With the repository variable `VITE_API_URL` set to the Vercel URL, the mirror
+  uses the same API.
 
-The Claude chat uses `claude-opus-5` by default (`CLAUDE_MODEL` to change), streams replies over server-sent events, and
-is protected by a per-IP rate limit and a daily cap (`AI_DAILY_LIMIT`) so a public deployment can’t drain the API credit.
+The AI uses `gemini-3.5-flash-lite` by default (about a second to the first token) and falls back to
+`gemini-3.5-flash` if the first model is busy. A per-IP rate limit and a daily cap (`AI_DAILY_LIMIT`, counted in
+MongoDB when it is connected) keep a public deployment inside the free tier.
 
 ## Testing
 
 | Suite | What it covers | Where |
 | --- | --- | --- |
-| Engine unit tests (Vitest) | scoring, vagueness, lint, signals, classifier, pay test, timeline, code generation | `client/src/lib/engine/*.test.ts` |
-| API tests (Vitest + Supertest) | auth, owner-only project CRUD, validation, SSE chat, refusals, daily cap, real SDK request | `server/test/` |
+| Client unit tests (Vitest) | scoring, vagueness, lint, signals, classifier, pay test, timeline, code generation, merging AI drafts | `client/src/lib/**/*.test.ts` |
+| API tests (Vitest + Supertest) | auth, owner-only project CRUD, sync conflicts, validation, SSE chat, drafts, fallback model, daily cap, the real SDK request | `server/test/` |
 | Generated starter | the generated CanteenQ API passes 24 end-to-end checks against MongoDB; its React app builds | `tools/verify-starter/`, CI |
 
 ## Limitations
 
-- The live co-founder is rule-based: explainable and offline, but not an open-ended conversation partner.
+- Gemini’s drafts are hypotheses to check, not research; the rule checks and real interviews still have to confirm them.
+- The AI runs on a free-tier key with a daily budget; when it runs out, AI features pause and the rule engine keeps working.
 - Signal benchmarks are rules of thumb for early tests (the Sean Ellis 40% threshold is the established one).
 - The reply classifier is keyword-based and English-only.
-- On the static site, projects live in the browser; use Export/Import to move them.
+- Without `MONGODB_URI`, projects live in the browser; use Export/Import to move them.
 
 ## Credits
 

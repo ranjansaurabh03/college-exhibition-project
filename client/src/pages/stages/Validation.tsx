@@ -34,7 +34,7 @@ export default function Validation({ project }: StageProps) {
   const [tab, setTab] = useState<Tab>('landing')
   return (
     <div className="space-y-5">
-      <div role="tablist" aria-label="Validation tools" className="flex gap-1 overflow-x-auto rounded-2xl border border-line bg-paper p-1">
+      <div role="tablist" aria-label="Validation tools" className="flex gap-1 overflow-x-auto rounded-2xl border border-line bg-surface p-1">
         {TABS.map((t) => (
           <button
             key={t.key}
@@ -43,7 +43,7 @@ export default function Validation({ project }: StageProps) {
             onClick={() => setTab(t.key)}
             className={cx(
               'flex shrink-0 items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-colors',
-              tab === t.key ? 'bg-cocoa text-cream' : 'text-muted hover:bg-sand/60 hover:text-ink',
+              tab === t.key ? 'bg-primary text-on-primary' : 'text-muted hover:bg-subtle/60 hover:text-body',
             )}
           >
             <t.icon className="size-4" aria-hidden="true" /> {t.label}
@@ -92,7 +92,7 @@ function LandingTab({ project }: StageProps) {
       <Card className="p-5 sm:p-6">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h2 className="text-lg font-bold text-espresso">Describe it before it exists</h2>
+            <h2 className="text-lg font-bold text-strong">Describe it before it exists</h2>
             <p className="text-sm text-muted">
               Generated from your one-liner. Edit the copy, download the page, and measure sign-ups to gauge real demand.
             </p>
@@ -115,11 +115,11 @@ function LandingTab({ project }: StageProps) {
       </Card>
 
       <Card className="overflow-hidden">
-        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line bg-cream/70 px-4 py-2.5">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line bg-canvas/70 px-4 py-2.5">
           <div className="flex items-center gap-1.5" aria-hidden="true">
-            <span className="size-2.5 rounded-full bg-tan" />
-            <span className="size-2.5 rounded-full bg-sand" />
-            <span className="size-2.5 rounded-full bg-sand" />
+            <span className="size-2.5 rounded-full bg-accent-soft" />
+            <span className="size-2.5 rounded-full bg-subtle" />
+            <span className="size-2.5 rounded-full bg-subtle" />
             <span className="ml-2 text-xs text-muted">{fileName}</span>
           </div>
           <div className="flex gap-2">
@@ -139,7 +139,7 @@ function LandingTab({ project }: StageProps) {
             </Button>
           </div>
         </div>
-        <iframe title="Landing page preview" srcDoc={html} sandbox="allow-scripts allow-forms" className="h-[520px] w-full bg-cream" />
+        <iframe title="Landing page preview" srcDoc={html} sandbox="allow-scripts allow-forms" className="h-[520px] w-full bg-canvas" />
       </Card>
     </div>
   )
@@ -152,10 +152,10 @@ function OutreachTab({ project }: StageProps) {
   return (
     <div className="space-y-5">
       <Card className="p-5">
-        <h2 className="text-lg font-bold text-espresso">A handful of honest replies from strangers beats feedback from friends</h2>
+        <h2 className="text-lg font-bold text-strong">A handful of honest replies from strangers beats feedback from friends</h2>
         <ul className="mt-3 grid gap-2 sm:grid-cols-2">
           {MOM_TEST_RULES.map((r) => (
-            <li key={r} className="flex gap-2 text-sm text-ink/85">
+            <li key={r} className="flex gap-2 text-sm text-body/85">
               <Check className="mt-0.5 size-4 shrink-0 text-good" aria-hidden="true" /> {r}
             </li>
           ))}
@@ -166,11 +166,11 @@ function OutreachTab({ project }: StageProps) {
         return (
           <Card key={t.id} className="p-5">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-clay">{t.channel}</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-accent">{t.channel}</p>
               <CopyButton text={full} />
             </div>
-            {t.subject ? <p className="mt-3 font-semibold text-espresso">{t.subject}</p> : null}
-            <pre className="mt-2 whitespace-pre-wrap rounded-xl bg-cream px-4 py-3 font-sans text-sm leading-relaxed text-ink">{t.body}</pre>
+            {t.subject ? <p className="mt-3 font-semibold text-strong">{t.subject}</p> : null}
+            <pre className="mt-2 whitespace-pre-wrap rounded-xl bg-canvas px-4 py-3 font-sans text-sm leading-relaxed text-body">{t.body}</pre>
           </Card>
         )
       })}
@@ -188,7 +188,7 @@ function SurveyTab({ project }: StageProps) {
     <Card className="p-5 sm:p-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="text-lg font-bold text-espresso">Survey: ask about the past, not the future</h2>
+          <h2 className="text-lg font-bold text-strong">Survey: ask about the past, not the future</h2>
           <p className="text-sm text-muted">Paste into Google Forms. Honest signal from real people beats assumptions made in isolation.</p>
         </div>
         <div className="flex gap-2">
@@ -200,15 +200,15 @@ function SurveyTab({ project }: StageProps) {
       </div>
       <ol className="mt-5 space-y-4">
         {qs.map((q, n) => (
-          <li key={q.q} className="rounded-xl border border-line bg-white/60 p-4">
+          <li key={q.q} className="rounded-xl border border-line bg-surface p-4">
             <div className="flex gap-3">
-              <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-sand text-sm font-bold text-cocoa">{n + 1}</span>
+              <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-subtle text-sm font-bold text-primary">{n + 1}</span>
               <div className="min-w-0">
-                <p className="font-semibold text-espresso">{q.q}</p>
+                <p className="font-semibold text-strong">{q.q}</p>
                 {q.options ? (
                   <div className="mt-2 flex flex-wrap gap-1.5">
                     {q.options.map((o) => (
-                      <span key={o} className="rounded-full border border-line bg-paper px-2.5 py-0.5 text-xs text-ink">
+                      <span key={o} className="rounded-full border border-line bg-surface px-2.5 py-0.5 text-xs text-body">
                         {o}
                       </span>
                     ))}
@@ -274,12 +274,12 @@ function SignalsTab({ project }: StageProps) {
   return (
     <div className="space-y-5">
       <Card className="p-5 sm:p-6">
-        <h2 className="text-lg font-bold text-espresso">Log what actually happened</h2>
+        <h2 className="text-lg font-bold text-strong">Log what actually happened</h2>
         <p className="text-sm text-muted">Raw counts from your landing page, outreach and survey.</p>
         <div className="mt-5 grid gap-5 sm:grid-cols-2">
           {SIGNAL_FIELDS.map((g) => (
             <fieldset key={g.group} className="rounded-xl border border-line p-4">
-              <legend className="px-1 text-xs font-semibold uppercase tracking-wider text-clay">{g.group}</legend>
+              <legend className="px-1 text-xs font-semibold uppercase tracking-wider text-accent">{g.group}</legend>
               <div className="grid grid-cols-2 gap-3">
                 {g.fields.map((f) => (
                   <Field key={f.key} label={f.label} htmlFor={`sig-${f.key}`}>
@@ -303,8 +303,8 @@ function SignalsTab({ project }: StageProps) {
       <Card className="p-5 sm:p-6">
         <div className="grid gap-6 md:grid-cols-[220px_1fr]">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-clay">Signal strength</p>
-            <p className="mt-1 text-5xl font-semibold text-espresso">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-accent">Signal strength</p>
+            <p className="mt-1 text-5xl font-semibold text-strong">
               {report.hasData ? report.score : '–'}
               {report.hasData ? <span className="text-lg text-muted">/100</span> : null}
             </p>
@@ -317,9 +317,9 @@ function SignalsTab({ project }: StageProps) {
             {report.metrics.map((m) => (
               <li key={m.key} className="py-3 first:pt-0 last:pb-0">
                 <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-                  <span className="text-sm font-semibold text-espresso">{m.label}</span>
+                  <span className="text-sm font-semibold text-strong">{m.label}</span>
                   <span className="flex items-center gap-3">
-                    <span className="text-sm text-ink">{m.display}</span>
+                    <span className="text-sm text-body">{m.display}</span>
                     <StatusLabel tone={BAND_TONE[m.band]} className="text-xs font-semibold">
                       {BAND_LABEL[m.band]}
                     </StatusLabel>
@@ -348,7 +348,7 @@ function SignalsTab({ project }: StageProps) {
       </Card>
 
       <Card className="p-5 sm:p-6">
-        <h2 className="text-lg font-bold text-espresso">Reading early signals</h2>
+        <h2 className="text-lg font-bold text-strong">Reading early signals</h2>
         <p className="text-sm text-muted">
           Paste replies from outreach or open survey answers, one per line. Confirmation bias makes it easy to hear what
           you want to hear; this separates polite interest from genuine intent.
@@ -372,10 +372,10 @@ function SignalsTab({ project }: StageProps) {
             </div>
             <ul className="mt-4 space-y-2">
               {replies.items.map((r, n) => (
-                <li key={`${n}-${r.text}`} className="flex gap-3 rounded-xl border border-line bg-white/60 px-3.5 py-2.5">
+                <li key={`${n}-${r.text}`} className="flex gap-3 rounded-xl border border-line bg-surface px-3.5 py-2.5">
                   <StatusIcon tone={CLASS_META[r.cls].tone} className="mt-0.5 size-4" />
                   <div className="min-w-0">
-                    <p className="text-sm text-ink">{r.text}</p>
+                    <p className="text-sm text-body">{r.text}</p>
                     <p className="mt-0.5 text-xs text-muted">
                       {CLASS_META[r.cls].label}
                       {r.matched.length ? ` · matched: ${r.matched.slice(0, 3).join(', ')}` : ''}
@@ -387,11 +387,11 @@ function SignalsTab({ project }: StageProps) {
             <List className="mt-4" title="What this tells you" items={replies.insights} tone="neutral" />
           </>
         ) : null}
-        <div className="mt-6 rounded-xl bg-sand/50 p-4">
-          <p className="text-sm font-semibold text-espresso">Principles for honest signal reading</p>
+        <div className="mt-6 rounded-xl bg-subtle/50 p-4">
+          <p className="text-sm font-semibold text-strong">Principles for honest signal reading</p>
           <ul className="mt-2 space-y-1.5">
             {SIGNAL_PRINCIPLES.map((p) => (
-              <li key={p} className="flex gap-2 text-sm text-ink/85">
+              <li key={p} className="flex gap-2 text-sm text-body/85">
                 <Check className="mt-0.5 size-4 shrink-0 text-good" aria-hidden="true" /> {p}
               </li>
             ))}
@@ -405,7 +405,7 @@ function SignalsTab({ project }: StageProps) {
 function List({ title, items, tone, className }: { title: string; items: string[]; tone: StatusTone; className?: string }): ReactNode {
   return (
     <div className={className}>
-      <p className="text-sm font-semibold text-espresso">{title}</p>
+      <p className="text-sm font-semibold text-strong">{title}</p>
       <ul className="mt-2 space-y-1.5">
         {items.map((t) => (
           <li key={t}>

@@ -1,10 +1,12 @@
-import { ArrowRight, BookOpen, Check, Cpu, Database, ExternalLink, FlaskConical, Laptop, Server, ShieldCheck, TriangleAlert } from 'lucide-react'
+import { ArrowRight, BookOpen, Check, Database, ExternalLink, FlaskConical, Laptop, MessagesSquare, Server, ShieldCheck, TriangleAlert, Wand2 } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
 import { SiteFooter, SiteHeader } from '../components/Site'
-import { ButtonLink, Card, Eyebrow, GithubMark, cx } from '../components/ui'
+import { ButtonLink, Card, Eyebrow, GithubMark, buttonClass, cx } from '../components/ui'
 import { BarChart, StatTile } from '../components/viz'
-import { SITE } from '../config'
+import { API_ENABLED, SITE } from '../config'
+import { useServer } from '../lib/server'
 import { STAGES } from '../lib/stages'
+import { prettyModel } from '../lib/useAiDraft'
 
 interface BuildFile {
   file: string
@@ -61,44 +63,39 @@ export default function Report() {
   return (
     <div className="flex min-h-screen flex-col">
       <SiteHeader />
-      <header className="hero-gradient text-cream">
-        <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-mint">Project report · {SITE.credits.event}</p>
-          <h1 className="mt-3 max-w-3xl font-display text-4xl font-extrabold leading-tight sm:text-5xl">
-            AI Co-Founder: from idea to MVP
-          </h1>
-          <p className="mt-4 max-w-2xl text-lg text-cream/80">
-            A technical partner for the 0-to-1 journey that asks the right questions at each stage, cuts unnecessary work and
-            generates real starter code.
-          </p>
-          <div className="mt-6 flex flex-wrap gap-3">
-            <ButtonLink to="/app" variant="light">
-              Open the live app <ArrowRight className="size-4" />
-            </ButtonLink>
-            <a
-              href={SITE.repoUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex h-10 items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-4 text-sm font-semibold hover:bg-white/20"
-            >
-              <GithubMark /> Source code
-            </a>
-          </div>
-          <p className="mt-6 text-sm text-cream/60">Built by {SITE.credits.builtBy.join(', ')}</p>
+      <header className="mx-auto w-full max-w-6xl px-4 pb-6 pt-12 sm:px-6 sm:pt-16">
+        <Eyebrow className="fade-up">Project report · {SITE.credits.event}</Eyebrow>
+        <h1 className="fade-up mt-4 max-w-3xl text-balance text-[40px] font-semibold leading-[1.04] tracking-[-0.03em] sm:text-6xl">
+          AI Co-Founder: from <span className="font-serif font-normal italic tracking-normal text-gradient">idea</span> to{' '}
+          <span className="font-serif font-normal italic tracking-normal text-gradient">MVP</span>
+        </h1>
+        <p className="fade-up mt-5 max-w-2xl text-[17px] leading-relaxed text-muted">
+          A technical partner for the 0-to-1 journey. Google Gemini drafts every stage and answers questions, a transparent
+          rule engine pushes back on anything vague, and the last stage writes real, runnable starter code.
+        </p>
+        <div className="fade-up mt-7 flex flex-wrap gap-3">
+          <ButtonLink to="/app" size="lg">
+            Open the live app <ArrowRight className="size-4" />
+          </ButtonLink>
+          <a href={SITE.repoUrl} target="_blank" rel="noreferrer" className={buttonClass('secondary', 'lg')}>
+            <GithubMark /> Source code
+          </a>
         </div>
+        <LiveStatus />
+        <p className="mt-5 text-sm text-muted">Built by {SITE.credits.builtBy.join(', ')}</p>
       </header>
 
-      <div className="mx-auto grid w-full max-w-6xl gap-10 px-4 py-12 sm:px-6 lg:grid-cols-[200px_minmax(0,1fr)]">
+      <div className="mx-auto grid w-full max-w-6xl gap-10 px-4 py-10 sm:px-6 lg:grid-cols-[200px_minmax(0,1fr)]">
         <nav aria-label="Report sections" className="hidden lg:block">
-          <ol className="sticky top-6 space-y-1 text-sm">
+          <ol className="sticky top-24 space-y-0.5 text-sm">
             {SECTIONS.map(([id, label], i) => (
               <li key={id}>
                 <button
                   type="button"
                   onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-                  className="w-full rounded-lg px-2 py-1 text-left text-muted hover:bg-sand/60 hover:text-ink"
+                  className="flex w-full gap-2 rounded-lg px-2 py-1.5 text-left text-muted transition-colors hover:bg-subtle hover:text-strong"
                 >
-                  {i + 1}. {label}
+                  <span className="font-mono text-[11px] leading-5 text-accent/80">{String(i + 1).padStart(2, '0')}</span> {label}
                 </button>
               </li>
             ))}
@@ -123,12 +120,37 @@ export default function Report() {
   )
 }
 
+/** What the deployed site is running right now, read from the API itself. */
+function LiveStatus() {
+  const status = useServer((s) => s.status)
+  const checked = useServer((s) => s.checked)
+  if (!API_ENABLED) return null
+  const items: [string, boolean, string][] = status
+    ? [
+        ['API', true, 'online'],
+        ['AI', status.ai.enabled, status.ai.enabled ? prettyModel(status.ai.model ?? 'gemini') : 'off'],
+        ['Cloud sync', status.db.enabled, status.db.enabled ? 'MongoDB' : 'not connected'],
+      ]
+    : [['API', false, checked ? 'unreachable' : 'checking…']]
+  return (
+    <ul aria-label="Live status" className="fade-up mt-8 flex flex-wrap gap-2 text-xs">
+      {items.map(([k, ok, v]) => (
+        <li key={k} className="inline-flex items-center gap-2 rounded-full border border-line bg-surface/60 px-3 py-1.5 backdrop-blur">
+          <span className={cx('size-1.5 rounded-full', ok ? 'bg-good' : 'bg-muted')} aria-hidden="true" />
+          <span className="font-semibold text-strong">{k}</span>
+          <span className="text-muted">{v}</span>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
 function Section({ id, n, title, children }: { id: string; n: number; title: string; children: ReactNode }) {
   return (
-    <section id={id} className="scroll-mt-6">
-      <Eyebrow>Section {n}</Eyebrow>
-      <h2 className="mt-1 text-2xl font-bold text-espresso sm:text-3xl">{title}</h2>
-      <div className="mt-5 space-y-4 text-[15px] leading-relaxed text-ink/90">{children}</div>
+    <section id={id} className="scroll-mt-24">
+      <Eyebrow>Section {String(n).padStart(2, '0')}</Eyebrow>
+      <h2 className="mt-2 text-2xl font-semibold tracking-tight text-strong sm:text-[32px]">{title}</h2>
+      <div className="mt-5 space-y-4 text-[15px] leading-relaxed text-body">{children}</div>
     </section>
   )
 }
@@ -148,8 +170,10 @@ function Overview() {
       </p>
       <p>
         <strong>What was built.</strong> A working web app that takes an idea through the four stages: Ideation,
-        Validation, Scoping and Building. Every stage produces concrete outputs, ending with a generated, runnable MERN
-        starter for the founder’s MVP. A demo project (CanteenQ, a campus canteen pre-ordering app) walks through all four.
+        Validation, Scoping and Building. The founder types the idea once; Google Gemini drafts the canvas for each stage
+        and answers questions in a chat that knows the project, while a rule engine checks every answer. Every stage
+        produces concrete outputs, ending with a generated, runnable MERN starter for the founder’s MVP. A demo project
+        (CanteenQ, a campus canteen pre-ordering app) walks through all four.
       </p>
     </Section>
   )
@@ -181,10 +205,14 @@ const STAGE_DETAIL: Record<string, { asks: string; produces: string; logic: stri
 function StagesSection() {
   return (
     <Section id="stages" n={2} title="The four stages">
-      <p>Each stage asks the right questions, cuts unnecessary work and keeps momentum toward a real product in users’ hands.</p>
-      <div className="overflow-x-auto rounded-2xl border border-line bg-paper">
+      <p>
+        Each stage asks the right questions, cuts unnecessary work and keeps momentum toward a real product in users’ hands.
+        On every stage, <strong>Draft with AI</strong> asks Gemini to fill the empty fields, and the rule engine then checks
+        the result like anything the founder typed.
+      </p>
+      <div className="overflow-x-auto rounded-2xl border border-line bg-surface">
         <table className="w-full min-w-[640px] text-left text-sm">
-          <thead className="bg-cream/70 text-xs text-muted">
+          <thead className="bg-subtle/60 text-xs text-muted">
             <tr>
               <th className="px-4 py-3 font-semibold">Stage</th>
               <th className="px-4 py-3 font-semibold">The co-founder asks</th>
@@ -195,12 +223,12 @@ function StagesSection() {
           <tbody className="divide-y divide-line align-top">
             {STAGES.map((s) => (
               <tr key={s.key}>
-                <td className="px-4 py-3 font-semibold text-espresso">
+                <td className="px-4 py-3 font-semibold text-strong">
                   {s.n}. {s.title}
                 </td>
                 <td className="px-4 py-3">{STAGE_DETAIL[s.key].asks}</td>
                 <td className="px-4 py-3">{STAGE_DETAIL[s.key].produces}</td>
-                <td className="px-4 py-3 font-mono text-xs text-clay">{STAGE_DETAIL[s.key].logic}</td>
+                <td className="px-4 py-3 font-mono text-xs text-accent">{STAGE_DETAIL[s.key].logic}</td>
               </tr>
             ))}
           </tbody>
@@ -215,39 +243,40 @@ function ArchitectureSection() {
     {
       icon: Laptop,
       title: 'React single-page app',
-      tag: 'Live on GitHub Pages',
-      items: ['React 19 + TypeScript, built with Vite 8', 'Tailwind CSS 4, React Router 8 (hash routes)', 'Zustand store, persisted to localStorage', 'Rule-based co-founder engine (pure functions)', 'Code-split: each stage is its own chunk'],
+      tag: 'Static files on Vercel’s CDN',
+      items: ['React 19 + TypeScript, built with Vite 8', 'Tailwind CSS 4, React Router 8 (hash routes)', 'Zustand store, persisted to localStorage', 'Rule engine as pure functions, in the browser', 'Code-split: each stage is its own chunk'],
     },
     {
       icon: Server,
       title: 'Node.js + Express 5 API',
-      tag: 'In /server · runs locally',
-      items: ['REST: /api/auth, /api/projects', 'JWT auth, bcrypt password hashing', 'Gemini API chat endpoint (streams over SSE)', 'Rate limiting on the AI route'],
+      tag: 'Vercel serverless function at /api',
+      items: ['Google Gemini through the @google/genai SDK', '/api/ai/chat streams replies over SSE', '/api/ai/draft returns schema-checked JSON', 'Fallback model, per-IP limit, daily AI budget', 'REST: /api/auth, /api/projects (JWT, bcrypt)'],
     },
     {
       icon: Database,
       title: 'MongoDB',
-      tag: 'Atlas free tier when hosted',
-      items: ['Mongoose schemas: User, Project', 'Stage data stored as flexible sub-documents', 'Index on { userId: 1, updatedAt: -1 }'],
+      tag: 'Atlas free tier · optional',
+      items: ['Mongoose schemas: User, Project, Usage', 'Stage data stored as flexible sub-documents', 'Index on { userId: 1, clientUpdatedAt: -1 }', 'Last-write-wins sync between devices'],
     },
   ]
   return (
     <Section id="architecture" n={3} title="System architecture">
       <p>
-        The deployed site is a static React app: the co-founder engine runs in the browser, so the demo works for anyone,
-        offline, with no sign-up and no API key. The repository also contains the Node, Express and MongoDB back end
-        described in the deck (accounts, project storage and a Gemini chat endpoint), covered by automated tests. It runs
-        locally today; hosting it and connecting the live site is the next step, and a Render blueprint is included.
+        The live site is one Vercel project. The React app is served as static files from the CDN, and the Express API
+        runs as a serverless function on the same domain, so there is no second host and no CORS. The Gemini key lives
+        only on the server; the browser never sees it. The rule engine still runs in the browser, so every stage keeps
+        working if the AI is down or its daily budget is used up. Cloud sync switches on when the server is given a
+        MongoDB connection string; until then projects stay in the browser.
       </p>
       <div className="flex flex-col gap-3 lg:flex-row">
         {tiers.map((t) => (
           <Card key={t.title} className="flex-1 p-5">
             <div className="flex items-center gap-2.5">
-              <span className="grid size-9 place-items-center rounded-lg bg-sand text-cocoa">
+              <span className="grid size-9 place-items-center rounded-xl bg-subtle text-accent">
                 <t.icon className="size-4" aria-hidden="true" />
               </span>
               <div>
-                <p className="font-semibold leading-tight text-espresso">{t.title}</p>
+                <p className="font-semibold leading-tight text-strong">{t.title}</p>
                 <p className="text-xs text-muted">{t.tag}</p>
               </div>
             </div>
@@ -261,15 +290,38 @@ function ArchitectureSection() {
           </Card>
         ))}
       </div>
-      <p className="text-sm text-muted">
-        Full-stack data flow once the client is connected to a hosted API: React components call the REST API with fetch;
-        Express routes validate input and read and write MongoDB through Mongoose models.
-      </p>
+      <ol className="grid gap-2 text-sm sm:grid-cols-2">
+        {[
+          ['Ask', 'The chat panel posts the question plus this stage’s canvas to /api/ai/chat.'],
+          ['Check', 'Express validates the turns and the project context, and takes one unit of the daily budget.'],
+          ['Stream', 'Gemini streams tokens; the server re-sends them as Server-Sent Events as they arrive.'],
+          ['Draft', '/api/ai/draft asks for JSON against a schema; the server clips it, the browser fills only empty fields.'],
+        ].map(([k, v], i) => (
+          <li key={k} className="flex gap-3 rounded-xl border border-line bg-surface/60 p-3">
+            <span className="font-mono text-xs leading-5 text-accent">{String(i + 1).padStart(2, '0')}</span>
+            <span>
+              <strong className="text-strong">{k}.</strong> {v}
+            </span>
+          </li>
+        ))}
+      </ol>
     </Section>
   )
 }
 
 function EngineSection() {
+  const ai = [
+    {
+      icon: Wand2,
+      title: 'Structured drafts',
+      body: 'Each stage has a JSON schema. Gemini returns structured output, the server clips lengths and checks enums, and the browser fills only the fields that are still empty, with an Undo.',
+    },
+    {
+      icon: MessagesSquare,
+      title: 'Grounded chat',
+      body: 'Every question is sent with the current stage’s canvas, so answers are about the founder’s own idea. The system prompt tells Gemini to push back, stay specific and never invent statistics.',
+    },
+  ]
   const rules = [
     {
       title: 'Vague-user detection',
@@ -303,14 +355,27 @@ function EngineSection() {
   return (
     <Section id="engine" n={4} title="How the co-founder decides">
       <p>
-        On the live site the co-founder is a transparent rule engine, not a language model. Every judgement can be traced to
-        a rule, which makes it explainable and testable, and means it never invents facts. The rules:
+        The co-founder has two halves. <strong>Gemini writes</strong>: it drafts the canvases and answers questions.{' '}
+        <strong>Rules judge</strong>: every score, warning and benchmark is a rule that runs in the browser, so each
+        judgement can be traced, tested and explained, and none of them is made up.
       </p>
+      <div className="grid gap-3 sm:grid-cols-2">
+        {ai.map((r) => (
+          <Card key={r.title} className="relative overflow-hidden p-4">
+            <div className="pointer-events-none absolute -right-10 -top-12 size-32 rounded-full bg-ai opacity-15 blur-2xl" aria-hidden="true" />
+            <p className="relative flex items-center gap-2 font-semibold text-strong">
+              <r.icon className="size-4 text-accent" aria-hidden="true" /> {r.title}
+            </p>
+            <p className="relative mt-1 text-sm text-body">{r.body}</p>
+          </Card>
+        ))}
+      </div>
+      <p className="pt-2 font-semibold text-strong">The rules</p>
       <div className="grid gap-3 sm:grid-cols-2">
         {rules.map((r) => (
           <Card key={r.title} className="p-4">
-            <p className="font-semibold text-espresso">{r.title}</p>
-            <p className="mt-1 text-sm text-ink/85">{r.body}</p>
+            <p className="font-semibold text-strong">{r.title}</p>
+            <p className="mt-1 text-sm text-body">{r.body}</p>
           </Card>
         ))}
       </div>
@@ -386,16 +451,16 @@ function TestingSection() {
           sub={results && results !== 'missing' ? `Run in CI before this deploy · ${new Date(results.startTime).toLocaleDateString()}` : 'Published by the CI build'}
         />
         <StatTile label="Generated API checks" value="24 / 24" sub="Starter run against MongoDB, re-checked by CI" />
-        <StatTile label="Deploys gated on tests" value="Every push" sub="GitHub Actions: test → build → deploy" />
+        <StatTile label="Deploys gated on tests" value="Every build" sub="Vercel runs the tests before it builds" />
       </div>
       {files.length ? (
         <Card className="p-5">
-          <p className="text-sm font-semibold text-espresso">Unit tests by engine module (Vitest)</p>
+          <p className="text-sm font-semibold text-strong">Unit tests by engine module (Vitest)</p>
           <ul className="mt-3 grid gap-2 sm:grid-cols-2">
             {files.map((f) => (
-              <li key={f.name} className="flex items-center justify-between rounded-lg bg-cream px-3 py-2 text-sm">
+              <li key={f.name} className="flex items-center justify-between rounded-xl border border-line bg-field px-3 py-2 text-sm">
                 <span className="font-mono text-xs">{f.name}</span>
-                <span className="inline-flex items-center gap-1.5 font-semibold text-espresso">
+                <span className="inline-flex items-center gap-1.5 font-semibold text-strong">
                   <Check className="size-4 text-good" aria-hidden="true" /> {f.passed} passed
                 </span>
               </li>
@@ -405,8 +470,8 @@ function TestingSection() {
       ) : null}
       <p>
         <strong>The API has its own suite</strong> (Vitest, Supertest and an in-memory MongoDB): registration and login,
-        rejected tokens, project CRUD restricted to the owner, input validation, the streamed chat format, refusal and
-        error handling, the daily AI cap, and the exact request the real Gemini SDK sends. CI runs it on every push.
+        rejected tokens, project CRUD restricted to the owner, sync conflicts, input validation, the streamed chat format,
+        AI drafts, error handling, the fallback model, the daily AI cap, and the exact request the real Gemini SDK sends.
       </p>
       <p>
         <strong>Generated code is executed, not just generated.</strong> The CanteenQ starter was emitted, installed and
@@ -427,16 +492,16 @@ function Swot({ title, q }: { title: string; q: Record<'S' | 'W' | 'O' | 'T', st
   ] as const
   return (
     <Card className="p-5">
-      <p className="font-semibold text-espresso">{title}</p>
+      <p className="font-semibold text-strong">{title}</p>
       <div className="mt-3 grid gap-3 sm:grid-cols-2">
         {meta.map(([k, label, sub]) => (
-          <div key={k} className="rounded-xl bg-cream p-4">
+          <div key={k} className="rounded-xl border border-line bg-field p-4">
             <p className="flex items-baseline gap-2">
-              <span className="font-display text-2xl font-extrabold text-cocoa">{k}</span>
-              <span className="font-semibold text-espresso">{label}</span>
+              <span className="font-serif text-3xl italic leading-none text-gradient">{k}</span>
+              <span className="font-semibold text-strong">{label}</span>
               <span className="text-xs text-muted">{sub}</span>
             </p>
-            <p className="mt-1.5 text-sm text-ink/85">{q[k]}</p>
+            <p className="mt-1.5 text-sm text-body">{q[k]}</p>
           </div>
         ))}
       </div>
@@ -454,9 +519,9 @@ function SwotSection() {
       <Swot
         title="Product: AI Co-Founder"
         q={{
-          S: 'Covers the whole 0-to-1 journey, not one step. Explainable rules, works offline with no sign-up, and outputs real artefacts: landing page, survey and runnable code.',
-          W: 'Rule-based language understanding is keyword-driven and English-only. Projects live in one browser until the back end is hosted.',
-          O: 'Plugging in an LLM (the Gemini endpoint is ready) for open-ended advice; college incubators and E-cells running idea-validation programmes; hackathon teams.',
+          S: 'Covers the whole 0-to-1 journey, not one step. AI drafts plus explainable rule checks, no sign-up, and real artefacts: landing page, survey and runnable code.',
+          W: 'AI drafts can be confidently wrong and need the founder’s judgement. The rule checks are keyword-driven and English-only. Without MongoDB, projects live in one browser.',
+          O: 'Letting Gemini read real survey answers and replies; college incubators and E-cells running idea-validation programmes; hackathon teams.',
           T: 'General-purpose AI assistants and app builders adding similar guided flows; founders preferring tools that just write code over tools that question the idea.',
         }}
       />
@@ -484,10 +549,11 @@ function SwotSection() {
 
 function LimitsSection() {
   const items = [
-    'The live demo’s co-founder is rule-based. It is transparent and never makes things up, but it cannot hold an open-ended conversation the way an LLM can.',
+    'Gemini’s drafts are starting points, not research: they are plausible hypotheses that the rule checks and the founder’s own interviews still have to confirm.',
+    'The AI runs on a free-tier key with a daily request budget. If the budget runs out, AI features pause until the next day; the rule engine keeps working.',
     'Benchmarks (5–15% sign-up rate, 25% reply rate) are rules of thumb for early-stage tests, not universal truths. The Sean Ellis 40% threshold is the only widely cited one.',
     'Text classification is keyword-based and English-only, so sarcasm or mixed replies can be misread.',
-    'On the static site, projects are stored in the browser (export/import JSON moves them). Cloud storage needs the hosted back end.',
+    'Projects are stored in the browser (export and import as JSON moves them). Cloud sync needs a MongoDB connection string on the server; the code and tests for it are in place.',
   ]
   return (
     <Section id="limits" n={8} title="Limitations (stated honestly)">
@@ -503,8 +569,8 @@ function LimitsSection() {
 }
 
 function FutureSection() {
-  const items: [typeof Cpu, string, string][] = [
-    [Cpu, 'LLM co-founder chat', 'Host the API with a Gemini key and connect the co-founder panel to it. The endpoint, prompt and streaming already exist in /server.'],
+  const items: [typeof Database, string, string][] = [
+    [MessagesSquare, 'AI that reads real evidence', 'Send survey answers and outreach replies to Gemini to summarise objections, while the rule engine keeps scoring the numbers.'],
     [Database, 'Cloud projects and teams', 'MongoDB Atlas + JWT accounts so co-founders can work on the same idea from any device.'],
     [FlaskConical, 'Live validation data', 'Collect landing-page sign-ups and survey answers directly instead of typing the numbers in.'],
     [ShieldCheck, 'One-click GitHub repo', 'Push the generated starter straight to a new GitHub repository with CI already set up.'],
@@ -515,10 +581,10 @@ function FutureSection() {
       <div className="grid gap-3 sm:grid-cols-2">
         {items.map(([Icon, t, b]) => (
           <Card key={t} className="flex gap-3 p-4">
-            <Icon className="mt-0.5 size-5 shrink-0 text-teal" aria-hidden="true" />
+            <Icon className="mt-0.5 size-5 shrink-0 text-accent" aria-hidden="true" />
             <div>
-              <p className="font-semibold text-espresso">{t}</p>
-              <p className="mt-0.5 text-sm text-ink/85">{b}</p>
+              <p className="font-semibold text-strong">{t}</p>
+              <p className="mt-0.5 text-sm text-body">{b}</p>
             </div>
           </Card>
         ))}
@@ -540,9 +606,9 @@ function ChangesSection() {
   return (
     <Section id="changes" n={10} title="What changed from the original deck">
       <p>To keep the presentation and the product consistent, these corrections were made while building:</p>
-      <div className="overflow-x-auto rounded-2xl border border-line bg-paper">
+      <div className="overflow-x-auto rounded-2xl border border-line bg-surface">
         <table className="w-full min-w-[640px] text-left text-sm">
-          <thead className="bg-cream/70 text-xs text-muted">
+          <thead className="bg-subtle/60 text-xs text-muted">
             <tr>
               <th className="px-4 py-3 font-semibold">Where</th>
               <th className="px-4 py-3 font-semibold">Before</th>
@@ -552,8 +618,8 @@ function ChangesSection() {
           <tbody className="divide-y divide-line align-top">
             {rows.map(([w, b, n]) => (
               <tr key={w}>
-                <td className="px-4 py-3 font-semibold text-espresso">{w}</td>
-                <td className="px-4 py-3 text-ink/80">{b}</td>
+                <td className="px-4 py-3 font-semibold text-strong">{w}</td>
+                <td className="px-4 py-3 text-muted">{b}</td>
                 <td className={cx('px-4 py-3')}>{n}</td>
               </tr>
             ))}
@@ -563,7 +629,7 @@ function ChangesSection() {
       <p className="text-sm text-muted">
         References: Sean Ellis, product–market fit survey (“very disappointed” 40% benchmark); Rob Fitzpatrick, <em>The Mom
         Test</em> (customer interview rules); MongoDB and React documentation.{' '}
-        <a className="inline-flex items-center gap-1 font-semibold text-teal underline" href={SITE.repoUrl} target="_blank" rel="noreferrer">
+        <a className="inline-flex items-center gap-1 font-semibold text-link underline" href={SITE.repoUrl} target="_blank" rel="noreferrer">
           Repository <ExternalLink className="size-3.5" />
         </a>
       </p>

@@ -1,4 +1,5 @@
-# Render Blueprint: deploys the API in /server as a free web service.
+# Alternative host. The main deployment is Vercel (vercel.json), which serves the app and the API together.
+# Render Blueprint: deploys only the API in /server as a free web service.
 # Render dashboard → New → Blueprint → pick this repository, then fill in the secret values.
 services:
   - type: web
@@ -18,9 +19,9 @@ services:
         generateValue: true
       - key: CLIENT_ORIGIN
         value: https://ranjansaurabh03.github.io
-      - key: ANTHROPIC_API_KEY
-        sync: false # optional: enables the Claude co-founder chat
-      - key: CLAUDE_MODEL
-        value: claude-opus-5
+      - key: GEMINI_API_KEY
+        sync: false # enables the Gemini co-founder (chat and drafts)
+      - key: GEMINI_MODEL
+        value: gemini-3.5-flash-lite
       - key: AI_DAILY_LIMIT
         value: "300"

@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "REST API for AI Co-Founder: auth, projects in MongoDB, and a Claude-powered co-founder chat.",
+  "description": "REST API for AI Co-Founder: auth, projects in MongoDB, and a Google Gemini co-founder (streamed chat and stage drafts).",
   "scripts": {
     "dev": "node --watch src/index.js",
     "start": "node src/index.js",

@@ -1,247 +1,155 @@
-import {
-  ArrowRight,
-  Code2,
-  Compass,
-  FileCode2,
-  FlaskConical,
-  Gauge,
-  Hammer,
-  LayoutTemplate,
-  Lightbulb,
-  ListChecks,
-  Mail,
-  MessageSquare,
-  Quote,
-  Scissors,
-  Signal,
-  Target,
-} from 'lucide-react'
+import { ArrowRight, Check, Download, FlaskConical, Hammer, Lightbulb, Scissors, Sparkles, Wand2 } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { useNavigate } from 'react-router'
+import { IdeaComposer } from '../components/IdeaComposer'
 import { SiteFooter, SiteHeader } from '../components/Site'
-import { Button, ButtonLink, Card, Eyebrow } from '../components/ui'
-import { SITE } from '../config'
+import { Button, ButtonLink, Eyebrow, SpotlightCard, cx } from '../components/ui'
+import { useServer } from '../lib/server'
 import { useProjects } from '../lib/store'
-
-const STAGES = [
-  {
-    n: 1,
-    icon: Lightbulb,
-    title: 'Ideation',
-    lead: 'From a vague feeling to a sharp, testable one-liner.',
-    asks: ['Who exactly is the user?', 'What is the pain, and how often does it hit?', 'Does this need to exist?'],
-    gives: 'Idea scorecard · vagueness flags · one-liner',
-  },
-  {
-    n: 2,
-    icon: FlaskConical,
-    title: 'Validation',
-    lead: 'Get honest signal from strangers before writing code.',
-    asks: ['Would someone sign up for this today?', 'Is that polite interest or real intent?', 'What would make them pay?'],
-    gives: 'Landing page · outreach kit · survey · signal report',
-  },
-  {
-    n: 3,
-    icon: Scissors,
-    title: 'Scoping',
-    lead: 'Cut ruthlessly to the smallest shippable unit.',
-    asks: ['Does this feature change whether someone pays?', 'What is the one core flow?', 'Can it ship in 3 weeks?'],
-    gives: 'Keep / later / cut board · timeline · MVP boundary',
-  },
-  {
-    n: 4,
-    icon: Hammer,
-    title: 'Building',
-    lead: 'Real code, not just advice.',
-    asks: ['What does the data model look like?', 'Which routes and pages are needed?', 'What ships in week one?'],
-    gives: 'Architecture map · generated MERN starter (.zip)',
-  },
-]
-
-const OUTPUTS = [
-  { icon: Target, title: 'Sharp one-liner', body: '“[Product] helps [user] do [outcome] by [approach]” with lint checks for vague words and buzzwords.' },
-  { icon: Gauge, title: 'Idea scorecard', body: 'Clarity, pain and differentiation scores with the specific questions still holding the idea back.' },
-  { icon: LayoutTemplate, title: 'Landing page', body: 'A live preview built from your answers. Download it as a single HTML file and start collecting sign-ups.' },
-  { icon: Mail, title: 'Outreach kit', body: 'Cold email, DM and community post written from the user’s pain, following Mom Test rules.' },
-  { icon: ListChecks, title: 'User survey', body: 'Questions about past behaviour (not hypotheticals) plus the 40% “very disappointed” test.' },
-  { icon: Signal, title: 'Signal report', body: 'Paste replies and numbers; the co-founder separates polite interest from genuine intent.' },
-  { icon: Compass, title: 'MVP boundary', body: 'One user type, one core flow, one outcome, with a timeline checked against a 3-week target.' },
-  { icon: FileCode2, title: 'MERN starter code', body: 'Mongoose model, Express REST routes, JWT auth and React pages generated for your MVP.' },
-]
-
-const STACK = [
-  { group: 'Live app', items: ['React 19', 'TypeScript', 'Vite', 'Tailwind CSS', 'Zustand'] },
-  { group: 'Server in the repo', items: ['Node.js + Express', 'MongoDB + Mongoose', 'Gemini API'] },
-]
 
 export default function Landing() {
   const navigate = useNavigate()
   const loadDemo = useProjects((s) => s.loadDemo)
-
-  function openDemo() {
-    const id = loadDemo()
-    navigate(`/app/p/${id}/ideation`)
-  }
+  const status = useServer((s) => s.status)
+  const openDemo = () => navigate(`/app/p/${loadDemo()}/ideation`)
 
   return (
     <div className="min-h-screen">
-      <section className="hero-gradient relative overflow-hidden text-cream">
-        <CircuitDecor />
-        <SiteHeader tone="light" />
-        <div className="relative z-10 mx-auto grid max-w-6xl gap-12 px-4 pb-20 pt-10 sm:px-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-center lg:pb-28 lg:pt-16">
-          <div>
-            <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-mint">
-              {SITE.subtitle}
-            </p>
-            <h1 className="font-display text-4xl font-extrabold uppercase leading-[1.02] tracking-tight sm:text-6xl">
-              AI Co-Founder:
-              <br />
-              From Idea to MVP
-            </h1>
-            <p className="mt-6 max-w-xl text-lg leading-relaxed text-cream/80">
-              Not a single-purpose tool you prompt. A technical partner that asks the right question at every stage, from a
-              raw idea to a scoped MVP with generated starter code.
-            </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Button variant="light" size="lg" onClick={openDemo}>
-                Try the demo project <ArrowRight className="size-4" />
-              </Button>
-              <ButtonLink to="/app" size="lg" variant="glass">
-                Start your own idea
-              </ButtonLink>
-            </div>
-            <p className="mt-5 text-sm text-cream/60">No sign-up. Your projects stay in this browser.</p>
-          </div>
-          <ConversationPreview />
-        </div>
-      </section>
+      <SiteHeader />
 
       <main>
-        <section className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
-          <div className="grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
-            <div>
-              <Eyebrow>Why founders need an AI co-founder</Eyebrow>
-              <h2 className="mt-3 text-3xl font-bold text-espresso sm:text-4xl">Single-purpose tools solve one problem at a time.</h2>
-              <p className="mt-4 text-lg leading-relaxed text-muted">
-                Founders get a code generator, a design tool and a planning template, and still nobody asks whether the
-                idea is worth building. A co-founder stays with you across the whole 0-to-1 journey and pushes back
-                before you waste weeks.
-              </p>
-            </div>
-            <div className="grid gap-3 sm:grid-cols-3">
-              {[
-                { label: 'Just code', note: 'Writes features you may not need' },
-                { label: 'Just design', note: 'Polishes screens nobody validated' },
-                { label: 'Just planning', note: 'Plans without questioning the idea' },
-              ].map((t) => (
-                <Card key={t.label} className="p-5">
-                  <p className="font-display text-lg font-bold text-espresso">{t.label}</p>
-                  <p className="mt-1 text-sm text-muted">{t.note}</p>
-                </Card>
-              ))}
-              <Card className="border-cocoa bg-cocoa p-5 text-cream sm:col-span-3">
-                <p className="font-display text-lg font-bold">A co-founder</p>
-                <p className="mt-1 text-sm text-cream/80">
-                  Asks who the user is, demands evidence of demand, cuts scope and then writes the code for what is left.
-                </p>
-              </Card>
-            </div>
-          </div>
+        {/* Hero */}
+        <section className="mx-auto max-w-4xl px-4 pb-16 pt-16 text-center sm:px-6 sm:pt-24">
+          <p className="fade-up inline-flex items-center gap-2 rounded-full border border-line bg-surface/60 px-3 py-1 text-xs font-medium text-body backdrop-blur">
+            <span className="relative flex size-1.5">
+              <span className="absolute inline-flex size-full animate-ping rounded-full bg-good opacity-70" />
+              <span className="relative inline-flex size-1.5 rounded-full bg-good" />
+            </span>
+            {status?.ai.enabled ? 'Live with Google Gemini · No sign-up' : 'Runs in your browser · No sign-up'}
+          </p>
+          <h1 className="fade-up mt-6 text-[44px] font-semibold leading-[1.02] tracking-[-0.035em] sm:text-7xl">
+            Your AI <span className="whitespace-nowrap">co-founder,</span>
+            <br />
+            from <span className="font-serif font-normal italic tracking-normal text-gradient">idea</span> to{' '}
+            <span className="font-serif font-normal italic tracking-normal text-gradient">MVP</span>.
+          </h1>
+          <p className="fade-up mx-auto mt-6 max-w-2xl text-[17px] leading-relaxed text-muted">
+            Type your idea once. It drafts the canvas, pushes back on anything vague, helps you test real demand, cuts
+            the scope to three weeks and then writes the starter code.
+          </p>
+          <IdeaComposer className="fade-up mx-auto mt-10 max-w-2xl" />
+          <button type="button" onClick={openDemo} className="mt-6 inline-flex items-center gap-1.5 text-sm font-semibold text-muted hover:text-strong">
+            or explore a finished example <ArrowRight className="size-3.5" />
+          </button>
         </section>
 
-        <section className="border-y border-line bg-paper">
-          <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
-            <Eyebrow>The four stages</Eyebrow>
-            <h2 className="mt-3 max-w-2xl text-3xl font-bold text-espresso sm:text-4xl">
-              Each stage asks the right questions and cuts unnecessary work.
+        {/* Product preview */}
+        <section className="mx-auto max-w-5xl px-4 sm:px-6" aria-label="Product preview">
+          <AppPreview />
+        </section>
+
+        {/* Bento */}
+        <section className="mx-auto max-w-6xl px-4 py-24 sm:px-6">
+          <div className="mx-auto max-w-2xl text-center">
+            <Eyebrow>One co-founder · four stages</Eyebrow>
+            <h2 className="mt-3 text-3xl font-semibold tracking-tight sm:text-5xl">
+              It asks the right question <span className="font-serif font-normal italic text-gradient">at every step</span>.
             </h2>
-            <div className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
-              {STAGES.map((s) => (
-                <Card key={s.n} className="flex flex-col p-6">
-                  <div className="flex items-center justify-between">
-                    <span className="grid size-11 place-items-center rounded-xl bg-sand text-cocoa">
-                      <s.icon className="size-5" />
-                    </span>
-                    {/* Decorative numeral, drawn with CSS so it isn't read as content. */}
-                    <span aria-hidden="true" data-n={`0${s.n}`} className="font-display text-4xl font-extrabold text-sand after:content-[attr(data-n)]" />
+            <p className="mt-4 text-muted">Single-purpose tools solve one problem at a time. This one stays with you from a vague feeling to shipped code.</p>
+          </div>
+          <div className="mt-14 grid gap-4 md:grid-cols-6">
+            <Bento className="md:col-span-4" n={1} icon={Lightbulb} title="Ideation" text="From a vague feeling to a sharp one-liner. It flags audiences that aren’t users and scores the pain.">
+              <div className="mt-5 space-y-2 text-[13px]">
+                <Bubble mine>I want to build something for students.</Bubble>
+                <Bubble>“Students” is an audience, not a user. Which students feel this pain most often?</Bubble>
+                <Bubble mine>First-year hostel students with back-to-back labs.</Bubble>
+              </div>
+            </Bento>
+            <Bento className="md:col-span-2" n={2} icon={FlaskConical} title="Validation" text="Landing page, outreach and survey. Then it separates polite interest from real intent.">
+              <div className="mt-5 space-y-2.5">
+                {[
+                  ['Sign-ups', 85, 'Strong'],
+                  ['Replies', 45, 'Promising'],
+                  ['Pre-orders', 90, 'Strong'],
+                ].map(([label, v, band]) => (
+                  <div key={label as string}>
+                    <div className="mb-1 flex justify-between text-[11px] text-muted">
+                      <span>{label}</span>
+                      <span>{band}</span>
+                    </div>
+                    <div className="h-1.5 rounded-full bg-subtle">
+                      <div className="h-full rounded-full bg-ai" style={{ width: `${v}%` }} />
+                    </div>
                   </div>
-                  <h3 className="mt-5 text-xl font-bold text-espresso">
-                    Stage {s.n}: {s.title}
-                  </h3>
-                  <p className="mt-1.5 text-sm text-muted">{s.lead}</p>
-                  <ul className="mt-4 space-y-2 text-sm">
-                    {s.asks.map((q) => (
-                      <li key={q} className="flex gap-2">
-                        <MessageSquare className="mt-0.5 size-4 shrink-0 text-tan" />
-                        <span>{q}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  <p className="mt-auto pt-5 text-xs font-semibold uppercase tracking-wider text-clay">{s.gives}</p>
-                </Card>
-              ))}
-            </div>
+                ))}
+              </div>
+            </Bento>
+            <Bento className="md:col-span-2" n={3} icon={Scissors} title="Scoping" text="“Does this change whether someone pays?” Everything else waits for v2.">
+              <ul className="mt-5 space-y-1.5 text-[13px]">
+                {[
+                  ['Pre-order with UPI', true],
+                  ['Pickup token', true],
+                  ['Dark mode', false],
+                  ['AI meal recommendations', false],
+                ].map(([f, keep]) => (
+                  <li key={f as string} className="flex items-center gap-2">
+                    <span className={cx('grid size-4 place-items-center rounded-full', keep ? 'bg-good/20 text-good' : 'bg-bad/15 text-bad')}>
+                      {keep ? <Check className="size-3" /> : <span className="h-px w-2 bg-current" />}
+                    </span>
+                    <span className={keep ? 'text-strong' : 'text-muted line-through decoration-muted/60'}>{f}</span>
+                  </li>
+                ))}
+              </ul>
+            </Bento>
+            <Bento className="md:col-span-4" n={4} icon={Hammer} title="Building" text="Real code, not advice: a Mongoose model, Express routes, JWT auth and React pages for your MVP, ready to download.">
+              <pre className="mt-5 overflow-hidden rounded-xl border border-line bg-field p-4 font-mono text-[12px] leading-relaxed text-body [font-variant-ligatures:none]">
+                <span className="text-accent">const</span> orderSchema = <span className="text-accent">new</span> mongoose.Schema({'{'}
+                {'\n'}  items: {'{'} type: String, required: <span className="text-link">true</span> {'}'},
+                {'\n'}  pickupTime: {'{'} type: Date, required: <span className="text-link">true</span> {'}'},
+                {'\n'}{'}'})
+              </pre>
+              <p className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-muted">
+                <Download className="size-3.5" /> 19 files · runs against MongoDB · checked in CI
+              </p>
+            </Bento>
           </div>
         </section>
 
-        <section className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
-          <Eyebrow>What you walk away with</Eyebrow>
-          <h2 className="mt-3 max-w-2xl text-3xl font-bold text-espresso sm:text-4xl">Concrete outputs at every stage.</h2>
-          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {OUTPUTS.map((o) => (
-              <div key={o.title} className="rounded-2xl border border-line bg-paper p-5">
-                <o.icon className="size-5 text-teal" />
-                <p className="mt-3 font-display font-bold text-espresso">{o.title}</p>
-                <p className="mt-1 text-sm leading-relaxed text-muted">{o.body}</p>
+        {/* How it works */}
+        <section className="border-y border-line bg-surface/40">
+          <div className="mx-auto grid max-w-6xl gap-8 px-4 py-16 sm:px-6 md:grid-cols-3">
+            {[
+              { icon: Sparkles, title: 'Describe it once', text: 'One sentence is enough. No forms, no sign-up.' },
+              { icon: Wand2, title: 'Get challenged', text: 'AI drafts every stage; the co-founder pushes back where it’s weak.' },
+              { icon: Download, title: 'Leave with a plan and code', text: 'A tested one-liner, a 3-week scope and a runnable MERN starter.' },
+            ].map((s, i) => (
+              <div key={s.title} className="flex gap-4">
+                <span className="grid size-10 shrink-0 place-items-center rounded-xl border border-line bg-surface font-mono text-sm text-accent">0{i + 1}</span>
+                <div>
+                  <p className="flex items-center gap-2 font-semibold text-strong">
+                    <s.icon className="size-4 text-accent" aria-hidden="true" /> {s.title}
+                  </p>
+                  <p className="mt-1 text-sm text-muted">{s.text}</p>
+                </div>
               </div>
             ))}
           </div>
         </section>
 
-        <section className="border-y border-line bg-sand/50">
-          <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-12 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <Eyebrow>Built with the stack it recommends</Eyebrow>
-              <p className="mt-2 max-w-md text-sm text-muted">
-                The app follows the MERN architecture it teaches: a code-split React front end that runs on its own, plus a
-                tested Node, Express and MongoDB API in the repository, not yet connected to the live site.
-              </p>
-            </div>
-            <div className="space-y-3">
-              {STACK.map((g) => (
-                <div key={g.group} className="flex flex-wrap items-center gap-2">
-                  <span className="w-36 text-xs font-semibold uppercase tracking-wider text-clay">{g.group}</span>
-                  <ul className="flex flex-wrap gap-2">
-                    {g.items.map((t) => (
-                      <li key={t} className="rounded-full border border-line bg-paper px-3 py-1.5 text-sm font-semibold text-espresso">
-                        {t}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
-          <div className="hero-gradient relative overflow-hidden rounded-3xl px-6 py-14 text-center text-cream sm:px-12">
-            <CircuitDecor />
-            <div className="relative z-10">
-              <h2 className="font-display text-3xl font-extrabold sm:text-5xl">
-                Start your journey.
-                <br />
-                Build your MVP today.
-              </h2>
-              <div className="mt-8 flex flex-wrap justify-center gap-3">
-                <Button variant="light" size="lg" onClick={openDemo}>
-                  Walk through the demo <ArrowRight className="size-4" />
-                </Button>
-                <ButtonLink to="/report" size="lg" variant="glass">
-                  <Code2 className="size-4" /> Read the project report
-                </ButtonLink>
-              </div>
-            </div>
+        {/* CTA */}
+        <section className="mx-auto max-w-4xl px-4 py-24 text-center sm:px-6">
+          <h2 className="text-4xl font-semibold tracking-tight sm:text-6xl">
+            Start your journey.
+            <br />
+            <span className="font-serif font-normal italic text-gradient">Build your MVP today.</span>
+          </h2>
+          <div className="mt-10 flex flex-wrap justify-center gap-3">
+            <Button size="lg" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+              Start with your idea <ArrowRight className="size-4" />
+            </Button>
+            <ButtonLink to="/report" size="lg" variant="secondary">
+              Read the project report
+            </ButtonLink>
           </div>
         </section>
       </main>
@@ -251,74 +159,102 @@ export default function Landing() {
   )
 }
 
-function ConversationPreview() {
+function Bento({
+  n,
+  icon: Icon,
+  title,
+  text,
+  className,
+  children,
+}: {
+  n: number
+  icon: typeof Lightbulb
+  title: string
+  text: string
+  className?: string
+  children: ReactNode
+}) {
+  return (
+    <SpotlightCard className={cx('overflow-hidden p-6', className)}>
+      <div className="flex items-center justify-between">
+        <span className="grid size-10 place-items-center rounded-xl border border-line bg-subtle text-accent">
+          <Icon className="size-5" />
+        </span>
+        <span className="font-mono text-xs text-muted">Stage 0{n}</span>
+      </div>
+      <h3 className="mt-5 text-xl font-semibold">{title}</h3>
+      <p className="mt-1.5 max-w-md text-sm leading-relaxed text-muted">{text}</p>
+      {children}
+    </SpotlightCard>
+  )
+}
+
+function Bubble({ mine, children }: { mine?: boolean; children: ReactNode }) {
+  return (
+    <div className={cx('flex', mine ? 'justify-end' : 'justify-start')}>
+      <p
+        className={cx(
+          'max-w-[85%] rounded-2xl px-3.5 py-2',
+          mine ? 'rounded-br-md bg-primary text-on-primary' : 'rounded-bl-md border border-line bg-subtle text-body',
+        )}
+      >
+        {children}
+      </p>
+    </div>
+  )
+}
+
+/** A stylised, static preview of the workspace (pure HTML, so it stays crisp in both themes). */
+function AppPreview() {
   return (
     <div className="relative">
-      <div className="rounded-3xl border border-white/15 bg-white/[0.07] p-5 shadow-2xl backdrop-blur-md sm:p-6">
-        <p className="mb-4 text-xs font-semibold uppercase tracking-[0.16em] text-cream/50">From vague to sharp</p>
-        <div className="space-y-3 text-sm leading-relaxed">
-          <Bubble who="you">I want to build something for students.</Bubble>
-          <Bubble who="cofounder">
-            “Students” is an audience, not a user. Which students feel this pain most often, and when does it hit?
-          </Bubble>
-          <Bubble who="you">Hostel students who miss lunch between back-to-back labs.</Bubble>
-          <Bubble who="cofounder">
-            Now we’re talking. How are they solving it today, and why is that painful enough to switch?
-          </Bubble>
+      <div className="absolute inset-x-10 -top-6 h-40 rounded-full bg-ai opacity-20 blur-3xl" aria-hidden="true" />
+      <div className="card relative overflow-hidden rounded-3xl">
+        <div className="flex items-center gap-2 border-b border-line px-4 py-3">
+          <span className="size-2.5 rounded-full bg-bad/70" />
+          <span className="size-2.5 rounded-full bg-warn/70" />
+          <span className="size-2.5 rounded-full bg-good/70" />
+          <span className="ml-3 rounded-md bg-subtle px-2 py-0.5 font-mono text-[11px] text-muted">ai-cofounder.app / CanteenQ / ideation</span>
         </div>
-        <div className="mt-5 rounded-2xl bg-cream p-4 text-ink">
-          <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-clay">
-            <Quote className="size-3.5" /> One-liner
-          </p>
-          <p className="mt-1.5 font-display text-[15px] font-semibold leading-snug text-espresso">
-            CanteenQ helps first-year hostel students with back-to-back lab sessions grab lunch in the 20-minute break by
-            letting them pre-order and skip the queue.
-          </p>
+        <div className="grid gap-4 p-4 sm:p-6 md:grid-cols-[1fr_280px]">
+          <div className="space-y-4">
+            <div className="flex flex-wrap gap-2">
+              {['Ideation', 'Validation', 'Scoping', 'Building'].map((s, i) => (
+                <span key={s} className={cx('rounded-full px-3 py-1 text-xs font-semibold', i === 0 ? 'bg-primary text-on-primary' : 'border border-line text-muted')}>
+                  {i + 1} · {s}
+                </span>
+              ))}
+            </div>
+            <div className="rounded-2xl border border-line bg-field p-4">
+              <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted">Idea scorecard</p>
+              <div className="mt-2 flex items-end gap-3">
+                <p className="text-4xl font-semibold text-strong">92</p>
+                <p className="mb-1 text-sm text-good">Sharp enough to validate</p>
+              </div>
+              <div className="mt-3 space-y-2">
+                {[92, 91, 92].map((v, i) => (
+                  <div key={i} className="h-1.5 rounded-full bg-good/15">
+                    <div className="h-full rounded-full bg-good" style={{ width: `${v}%` }} />
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="rounded-2xl border border-line bg-field p-4 text-sm text-strong">
+              CanteenQ helps first-year hostel students with back-to-back lab sessions grab lunch in the 20-minute break by
+              letting them pre-order and skip the queue.
+            </div>
+          </div>
+          <div className="rounded-2xl border border-line bg-subtle/60 p-4 text-[13px]">
+            <p className="flex items-center gap-2 text-xs font-semibold text-muted">
+              <Sparkles className="size-3.5 text-accent" /> Ask AI
+            </p>
+            <div className="mt-3 space-y-2">
+              <Bubble mine>What’s my riskiest assumption?</Bubble>
+              <Bubble>Whether canteen staff will honour pickup tokens at rush hour. Test it with one stall for a week.</Bubble>
+            </div>
+          </div>
         </div>
       </div>
     </div>
-  )
-}
-
-function Bubble({ who, children }: { who: 'you' | 'cofounder'; children: ReactNode }) {
-  const mine = who === 'you'
-  return (
-    <div className={mine ? 'flex justify-end' : 'flex justify-start'}>
-      <div
-        className={
-          mine
-            ? 'max-w-[85%] rounded-2xl rounded-br-md bg-tan px-4 py-2.5 text-espresso'
-            : 'max-w-[85%] rounded-2xl rounded-bl-md bg-white/12 px-4 py-2.5 text-cream'
-        }
-      >
-        {!mine && <span className="mb-0.5 block text-[11px] font-semibold uppercase tracking-wider text-mint">Co-founder</span>}
-        {children}
-      </div>
-    </div>
-  )
-}
-
-function CircuitDecor() {
-  return (
-    <svg
-      aria-hidden="true"
-      className="pointer-events-none absolute -right-20 bottom-0 h-[420px] w-[620px] opacity-30"
-      viewBox="0 0 620 420"
-      fill="none"
-      stroke="#7fd1c7"
-      strokeWidth="1.5"
-    >
-      <path d="M620 60 H470 L430 100 V260 L380 310 H250" />
-      <path d="M620 120 H500 L470 150 V330 L430 370 H300" />
-      <path d="M620 200 H540 L510 230 V420" />
-      <path d="M560 420 V300 L600 260 H620" />
-      <path d="M400 420 V360 L440 320 V180 L470 150" />
-      <path d="M330 420 V380 L360 350 H420" />
-      <circle cx="250" cy="310" r="5" />
-      <circle cx="300" cy="370" r="5" />
-      <circle cx="420" cy="350" r="4" />
-      <circle cx="470" cy="60" r="4" />
-      <circle cx="540" cy="200" r="4" />
-    </svg>
   )
 }

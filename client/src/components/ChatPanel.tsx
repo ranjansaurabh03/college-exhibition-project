@@ -1,12 +1,15 @@
-import { Eraser, SendHorizontal, Sparkles, Square } from 'lucide-react'
+import { ArrowUp, Eraser, Sparkles, Square } from 'lucide-react'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { streamChat, type ChatTurn } from '../lib/api'
+import { contextOf } from '../lib/drafts'
 import { uid } from '../lib/factory'
 import { stageMeta } from '../lib/stages'
 import { useProjects } from '../lib/store'
 import type { ChatMessage, Project, StageKey } from '../lib/types'
+import { prettyModel } from '../lib/useAiDraft'
+import { ASK_AI_EVENT } from './CommandPalette'
 import { Markdown } from './Markdown'
-import { Button, cx } from './ui'
+import { cx } from './ui'
 
 const PROMPTS: Record<StageKey, string[]> = {
   ideation: ['What is the weakest part of my idea?', 'Is my target user specific enough?', 'Rewrite my one-liner three ways'],
@@ -32,17 +35,6 @@ function toTurns(history: ChatMessage[]): ChatTurn[] {
   return turns
 }
 
-/** The project data the model sees: the canvases, not the chat transcripts. */
-function contextOf(p: Project) {
-  return {
-    name: p.name,
-    ideation: p.ideation,
-    validation: { ...p.validation, responses: p.validation.responses.slice(0, 3000) },
-    scoping: p.scoping,
-    building: p.building,
-  }
-}
-
 export function ChatPanel({ project, stage, model }: { project: Project; stage: StageKey; model: string | null }) {
   const setAiChat = useProjects((s) => s.setAiChat)
   const messages = project.aiChat[stage] ?? []
@@ -53,11 +45,17 @@ export function ChatPanel({ project, stage, model }: { project: Project; stage: 
   const [answeredBy, setAnsweredBy] = useState<string | null>(null)
   const abortRef = useRef<AbortController | null>(null)
   const listRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLTextAreaElement>(null)
 
   useEffect(() => () => abortRef.current?.abort(), [])
   useEffect(() => {
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight })
   }, [messages.length, streaming])
+  useEffect(() => {
+    const onAsk = () => window.setTimeout(() => inputRef.current?.focus(), 50)
+    window.addEventListener(ASK_AI_EVENT, onAsk)
+    return () => window.removeEventListener(ASK_AI_EVENT, onAsk)
+  }, [])
 
   async function send(text: string) {
     const question = text.trim()
@@ -100,34 +98,36 @@ export function ChatPanel({ project, stage, model }: { project: Project; stage: 
     void send(draft)
   }
 
+  const live = answeredBy ?? model
+
   return (
-    <div className="flex min-h-0 flex-col">
-      <div className="flex items-center justify-between gap-2 border-b border-line px-4 py-2">
-        <p className="flex items-center gap-1.5 text-xs font-semibold text-muted">
+    <div className="flex min-h-0 flex-1 flex-col">
+      <div className="flex items-center justify-between gap-2 border-b border-line px-5 py-2">
+        <p className="flex items-center gap-1.5 text-xs font-medium text-muted">
           <span className="relative flex size-2">
             <span className="absolute inline-flex size-full animate-ping rounded-full bg-good/60" />
             <span className="relative inline-flex size-2 rounded-full bg-good" />
           </span>
-          Live · {answeredBy ?? model ?? 'Gemini'}
+          Live · {live ? prettyModel(live) : 'Gemini'}
         </p>
         {messages.length ? (
           <button
             type="button"
             onClick={() => setAiChat(project.id, stage, [])}
             disabled={streaming !== null}
-            className="inline-flex items-center gap-1 text-xs font-semibold text-muted hover:text-ink disabled:opacity-40"
+            className="inline-flex items-center gap-1 text-xs font-semibold text-muted hover:text-strong disabled:opacity-40"
           >
             <Eraser className="size-3.5" /> Clear
           </button>
         ) : null}
       </div>
 
-      <div ref={listRef} className="max-h-[46vh] min-h-40 space-y-3 overflow-y-auto px-4 py-4 text-sm leading-relaxed" aria-live="polite">
+      <div ref={listRef} className="max-h-[46vh] min-h-40 flex-1 space-y-3 overflow-y-auto px-5 py-4 text-[13.5px] leading-relaxed" aria-live="polite">
         {messages.length === 0 && streaming === null ? (
           <div>
-            <p className="text-ink/80">
-              Ask anything about <strong className="text-espresso">{stageMeta(stage).title}</strong>. Gemini sees this project’s canvases and
-              answers as your co-founder.
+            <p className="text-body">
+              Ask anything about <strong className="text-strong">{stageMeta(stage).title}</strong>. Gemini reads this project’s canvases and answers as
+              your co-founder.
             </p>
             <div className="mt-3 flex flex-col gap-1.5">
               {PROMPTS[stage].map((p) => (
@@ -135,9 +135,9 @@ export function ChatPanel({ project, stage, model }: { project: Project; stage: 
                   key={p}
                   type="button"
                   onClick={() => void send(p)}
-                  className="flex items-center gap-2 rounded-xl border border-line bg-white/70 px-3 py-2 text-left text-[13px] font-semibold text-espresso hover:border-tan"
+                  className="group flex items-center gap-2 rounded-xl border border-line bg-field px-3 py-2 text-left text-[13px] font-medium text-strong transition-colors hover:border-accent/50"
                 >
-                  <Sparkles className="size-3.5 shrink-0 text-clay" aria-hidden="true" /> {p}
+                  <Sparkles className="size-3.5 shrink-0 text-accent" aria-hidden="true" /> {p}
                 </button>
               ))}
             </div>
@@ -148,12 +148,13 @@ export function ChatPanel({ project, stage, model }: { project: Project; stage: 
           <Bubble key={m.id} mine={m.role === 'user'} text={m.text} />
         ))}
         {streaming !== null ? <Bubble mine={false} text={streaming} pending /> : null}
-        {error ? <p className="rounded-xl bg-bad/10 px-3 py-2 text-[13px] text-espresso">{error}</p> : null}
+        {error ? <p className="rounded-xl bg-bad/12 px-3 py-2 text-[13px] text-strong">{error}</p> : null}
       </div>
 
-      <form onSubmit={submit} className="border-t border-line px-3 py-3">
-        <div className="flex items-end gap-2">
+      <form onSubmit={submit} className="border-t border-line p-3">
+        <div className="flex items-end gap-2 rounded-2xl border border-line bg-field p-1.5 transition-colors focus-within:border-accent focus-within:ring-4 focus-within:ring-accent/15">
           <textarea
+            ref={inputRef}
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             onKeyDown={(e) => {
@@ -162,23 +163,23 @@ export function ChatPanel({ project, stage, model }: { project: Project; stage: 
                 void send(draft)
               }
             }}
-            rows={2}
+            rows={1}
             maxLength={MAX_CHARS}
             placeholder="Ask your co-founder…"
             aria-label="Message to your co-founder"
-            className="min-h-10 flex-1 resize-none rounded-xl border border-line bg-white px-3 py-2 text-sm placeholder:text-muted/70 focus:border-teal focus:outline-none focus:ring-2 focus:ring-teal/20"
+            className="max-h-32 min-h-9 flex-1 resize-none bg-transparent px-2 py-2 text-sm text-strong placeholder:text-muted/70 focus:outline-none"
           />
           {streaming !== null ? (
-            <Button variant="secondary" onClick={() => abortRef.current?.abort()} aria-label="Stop the reply" className="h-10 px-3">
-              <Square className="size-4" />
-            </Button>
+            <button type="button" onClick={() => abortRef.current?.abort()} aria-label="Stop the reply" className="grid size-9 shrink-0 place-items-center rounded-xl border border-line text-strong hover:bg-subtle">
+              <Square className="size-3.5" />
+            </button>
           ) : (
-            <Button type="submit" disabled={!draft.trim()} aria-label="Send" className="h-10 px-3">
-              <SendHorizontal className="size-4" />
-            </Button>
+            <button type="submit" disabled={!draft.trim()} aria-label="Send" className="grid size-9 shrink-0 place-items-center rounded-xl bg-primary text-on-primary transition-all hover:opacity-90 active:scale-95 disabled:opacity-30">
+              <ArrowUp className="size-4" />
+            </button>
           )}
         </div>
-        <p className="mt-1.5 text-[11px] text-muted">AI can make mistakes. Check important facts.</p>
+        <p className="mt-1.5 px-1 text-[11px] text-muted">AI can make mistakes. Check important facts.</p>
       </form>
     </div>
   )
@@ -187,24 +188,19 @@ export function ChatPanel({ project, stage, model }: { project: Project; stage: 
 function Bubble({ mine, text, pending }: { mine: boolean; text: string; pending?: boolean }) {
   return (
     <div className={cx('flex', mine ? 'justify-end' : 'justify-start')}>
-      <div
-        className={cx(
-          'max-w-[92%] rounded-2xl px-3.5 py-2.5',
-          mine ? 'whitespace-pre-wrap rounded-br-md bg-cocoa text-cream' : 'rounded-bl-md border border-line bg-white/80 text-ink',
-        )}
-      >
+      <div className={cx('max-w-[92%] rounded-2xl px-3.5 py-2.5', mine ? 'whitespace-pre-wrap rounded-br-md bg-primary text-on-primary' : 'rounded-bl-md border border-line bg-field text-body')}>
         {mine ? (
           text
         ) : text ? (
           <>
             <Markdown text={text} />
-            {pending ? <span className="ml-0.5 inline-block h-4 w-1.5 animate-pulse bg-clay align-middle" aria-hidden="true" /> : null}
+            {pending ? <span className="ml-0.5 inline-block h-4 w-1.5 animate-pulse rounded-sm bg-accent align-middle" aria-hidden="true" /> : null}
           </>
         ) : (
           <span className="inline-flex items-center gap-1 text-muted" aria-label="Thinking">
-            <span className="size-1.5 animate-bounce rounded-full bg-tan [animation-delay:-0.2s]" />
-            <span className="size-1.5 animate-bounce rounded-full bg-tan [animation-delay:-0.1s]" />
-            <span className="size-1.5 animate-bounce rounded-full bg-tan" />
+            <span className="size-1.5 animate-bounce rounded-full bg-accent [animation-delay:-0.2s]" />
+            <span className="size-1.5 animate-bounce rounded-full bg-accent [animation-delay:-0.1s]" />
+            <span className="size-1.5 animate-bounce rounded-full bg-accent" />
           </span>
         )}
       </div>

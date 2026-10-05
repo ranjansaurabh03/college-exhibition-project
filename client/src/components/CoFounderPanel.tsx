@@ -1,5 +1,5 @@
 import { ArrowRight, Bot, CircleCheck, Lightbulb, ListChecks, MessagesSquare } from 'lucide-react'
-import { useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { Link } from 'react-router'
 import { buildingChallenges } from '../lib/engine/building'
 import { ideationChallenges, type Challenge } from '../lib/engine/ideation'
@@ -9,7 +9,8 @@ import { useServer } from '../lib/server'
 import { STAGES } from '../lib/stages'
 import type { Project, StageKey } from '../lib/types'
 import { ChatPanel } from './ChatPanel'
-import { Card, cx } from './ui'
+import { ASK_AI_EVENT } from './CommandPalette'
+import { cx } from './ui'
 import { StatusIcon, type StatusTone } from './viz'
 
 export function challengesFor(project: Project, stage: StageKey): Challenge[] {
@@ -44,32 +45,37 @@ export function CoFounderPanel({ project, stage }: { project: Project; stage: St
   const blocking = challenges.filter((c) => c.level === 'block').length
   const showChat = Boolean(ai?.enabled) && tab === 'chat'
 
+  useEffect(() => {
+    const onAsk = () => setTab('chat')
+    window.addEventListener(ASK_AI_EVENT, onAsk)
+    return () => window.removeEventListener(ASK_AI_EVENT, onAsk)
+  }, [])
+
   return (
-    <Card className="flex flex-col overflow-hidden lg:max-h-[calc(100vh-3rem)]">
-      <div className="hero-gradient px-5 py-4 text-cream">
-        <div className="flex items-center gap-2.5">
-          <span className="grid size-9 place-items-center rounded-xl bg-white/12">
+    <div className="card flex flex-col overflow-hidden lg:max-h-[calc(100vh-7.5rem)]">
+      <div className="relative border-b border-line px-5 pb-4 pt-5">
+        <div className="pointer-events-none absolute -top-16 right-0 h-32 w-48 rounded-full bg-ai opacity-25 blur-3xl" aria-hidden="true" />
+        <div className="relative flex items-center gap-3">
+          <span className="grid size-10 place-items-center rounded-2xl bg-ai text-white shadow-[0_8px_24px_-8px_rgb(124_92_255/0.8)]">
             <Bot className="size-5" aria-hidden="true" />
           </span>
-          <div>
-            <p className="font-display font-bold leading-tight">Your co-founder</p>
-            <p className="text-xs text-cream/70">
-              {ai?.enabled ? 'Gemini chat + rule checks' : 'Built-in rule engine · runs in your browser'}
-            </p>
+          <div className="min-w-0">
+            <p className="font-semibold leading-tight text-strong">Your co-founder</p>
+            <p className="truncate text-xs text-muted">{ai?.enabled ? `Google Gemini + rule checks` : 'Rule engine · runs in your browser'}</p>
           </div>
         </div>
         {ai?.enabled ? (
-          <div role="tablist" aria-label="Co-founder" className="mt-3 grid grid-cols-2 gap-1 rounded-xl bg-white/10 p-1 text-sm font-semibold">
+          <div role="tablist" aria-label="Co-founder" className="relative mt-4 grid grid-cols-2 gap-1 rounded-xl border border-line bg-field p-1 text-[13px] font-semibold">
             <TabButton active={tab === 'chat'} onClick={() => setTab('chat')}>
               <MessagesSquare className="size-4" aria-hidden="true" /> Ask AI
             </TabButton>
             <TabButton active={tab === 'checks'} onClick={() => setTab('checks')}>
               <ListChecks className="size-4" aria-hidden="true" /> Checks
-              {challenges.length ? <span className="rounded-full bg-white/20 px-1.5 text-xs">{challenges.length}</span> : null}
+              {challenges.length ? <span className="rounded-full bg-subtle px-1.5 text-[11px] text-strong">{challenges.length}</span> : null}
             </TabButton>
           </div>
         ) : (
-          <p className="mt-3 text-sm text-cream/85">{summary(challenges.length, blocking)}</p>
+          <p className="relative mt-3 text-sm text-muted">{summary(challenges.length, blocking)}</p>
         )}
       </div>
 
@@ -84,15 +90,11 @@ export function CoFounderPanel({ project, stage }: { project: Project; stage: St
                 <div className="flex gap-2.5">
                   <StatusIcon tone={LEVEL_TONE[c.level]} className="mt-0.5 size-4" />
                   <div className="min-w-0">
-                    <p className="text-[11px] font-semibold uppercase tracking-wider text-muted">{LEVEL_LABEL[c.level]}</p>
-                    <p className="text-sm font-semibold text-espresso">{c.title}</p>
-                    <p className="mt-0.5 text-sm leading-relaxed text-ink/80">{c.body}</p>
+                    <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted">{LEVEL_LABEL[c.level]}</p>
+                    <p className="mt-0.5 text-sm font-semibold text-strong">{c.title}</p>
+                    <p className="mt-0.5 text-[13px] leading-relaxed text-body">{c.body}</p>
                     {c.field ? (
-                      <button
-                        type="button"
-                        onClick={() => focusField(c.field!)}
-                        className="mt-1.5 text-xs font-semibold text-teal underline-offset-2 hover:underline"
-                      >
+                      <button type="button" onClick={() => focusField(c.field!)} className="mt-1.5 text-xs font-semibold text-link underline-offset-2 hover:underline">
                         Answer this →
                       </button>
                     ) : null}
@@ -101,7 +103,7 @@ export function CoFounderPanel({ project, stage }: { project: Project; stage: St
               </li>
             ))}
             {challenges.length === 0 ? (
-              <li className="flex gap-2.5 px-5 py-4 text-sm text-espresso">
+              <li className="flex gap-2.5 px-5 py-4 text-sm text-strong">
                 <CircleCheck className="mt-0.5 size-4 shrink-0 text-good" aria-hidden="true" />
                 This stage is in good shape.
               </li>
@@ -111,7 +113,7 @@ export function CoFounderPanel({ project, stage }: { project: Project; stage: St
       )}
 
       <NextStage project={project} stage={stage} blocking={blocking} />
-    </Card>
+    </div>
   )
 }
 
@@ -128,7 +130,7 @@ function TabButton({ active, onClick, children }: { active: boolean; onClick: ()
       role="tab"
       aria-selected={active}
       onClick={onClick}
-      className={cx('flex items-center justify-center gap-1.5 rounded-lg px-2 py-1.5 transition-colors', active ? 'bg-cream text-night' : 'text-cream/85 hover:bg-white/10')}
+      className={cx('flex items-center justify-center gap-1.5 rounded-lg px-2 py-1.5 transition-all', active ? 'bg-primary text-on-primary shadow-sm' : 'text-muted hover:text-strong')}
     >
       {children}
     </button>
@@ -139,24 +141,24 @@ function NextStage({ project, stage, blocking }: { project: Project; stage: Stag
   const idx = STAGES.findIndex((s) => s.key === stage)
   const next = STAGES[idx + 1]
   return (
-    <div className="border-t border-line bg-cream/60 px-5 py-4">
+    <div className="border-t border-line px-4 py-3">
       {next ? (
         <Link
           to={`/app/p/${project.id}/${next.key}`}
           className={cx(
-            'flex items-center justify-between gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors',
-            blocking ? 'border border-line bg-paper text-espresso hover:border-tan' : 'bg-cocoa text-cream hover:bg-espresso',
+            'group flex items-center justify-between gap-2 rounded-xl px-4 py-2.5 text-[13px] font-semibold transition-all',
+            blocking ? 'border border-line text-strong hover:border-line-strong hover:bg-subtle' : 'bg-primary text-on-primary hover:opacity-90',
           )}
         >
           <span>
             Next: Stage {next.n} · {next.title}
             {blocking ? <span className="block text-xs font-normal text-muted">You can move on, but I’d fix the checks first.</span> : null}
           </span>
-          <ArrowRight className="size-4 shrink-0" />
+          <ArrowRight className="size-4 shrink-0 transition-transform group-hover:translate-x-0.5" />
         </Link>
       ) : (
-        <p className="flex gap-2 text-sm text-espresso">
-          <Lightbulb className="mt-0.5 size-4 shrink-0 text-clay" aria-hidden="true" />
+        <p className="flex gap-2 px-1 text-[13px] text-body">
+          <Lightbulb className="mt-0.5 size-4 shrink-0 text-accent" aria-hidden="true" />
           Last stage. Download the starter, then ship v1 to your first ten users.
         </p>
       )}

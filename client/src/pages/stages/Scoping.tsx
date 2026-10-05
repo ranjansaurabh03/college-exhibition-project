@@ -41,7 +41,7 @@ const VERDICT_META: Record<Verdict, { label: string; icon: typeof Ban; color: st
 function VerdictLabel({ v }: { v: Verdict }) {
   const m = VERDICT_META[v]
   return (
-    <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-espresso">
+    <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-strong">
       <m.icon className={cx('size-4 shrink-0', m.color)} aria-hidden="true" /> {m.label}
     </span>
   )
@@ -98,7 +98,7 @@ function FeatureTable({
     <Card className="p-5 sm:p-6" id="field-features">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="text-lg font-bold text-espresso">Push back on scope</h2>
+          <h2 className="text-lg font-bold text-strong">Push back on scope</h2>
           <p className="text-sm text-muted">Founders naturally over-build. Every feature has to earn its place in v1.</p>
         </div>
         <Button variant="secondary" size="sm" onClick={addCommon}>
@@ -148,7 +148,7 @@ function FeatureTable({
                       aria-label={`Override verdict for ${f.name}`}
                       value={f.override ?? ''}
                       onChange={(e) => setFeature(f.id, { override: (e.target.value || undefined) as Decision | undefined })}
-                      className="h-7 rounded-lg border border-line bg-white px-1.5 text-xs text-muted"
+                      className="h-7 rounded-lg border border-line bg-field px-1.5 text-xs text-muted"
                     >
                       <option value="">Auto</option>
                       <option value="keep">Keep</option>
@@ -175,7 +175,7 @@ function FeatureTable({
           </p>
         </>
       ) : (
-        <p className="mt-5 rounded-xl border border-dashed border-tan px-4 py-6 text-center text-sm text-muted">
+        <p className="mt-5 rounded-xl border border-dashed border-accent-soft px-4 py-6 text-center text-sm text-muted">
           No features yet. Add yours, or start from the usual wish-list and watch most of it get cut.
         </p>
       )}
@@ -205,7 +205,7 @@ function Board({ features }: { features: Feature[] }) {
           </div>
           <ul className="mt-3 space-y-1.5">
             {g[c].map((f) => (
-              <li key={f.id} className={cx('rounded-lg bg-cream px-3 py-1.5 text-sm text-ink', c === 'cut' && 'text-muted line-through decoration-muted/50')}>
+              <li key={f.id} className={cx('rounded-lg bg-canvas px-3 py-1.5 text-sm text-body', c === 'cut' && 'text-muted line-through decoration-muted/50')}>
                 {f.name}
               </li>
             ))}
@@ -223,7 +223,7 @@ function TimelineCard({ scoping, set }: { scoping: ScopingData; set: (p: Partial
   const ratio = scoping.weeksTarget > 0 ? (t.weeks / scoping.weeksTarget) * 100 : 0
   return (
     <Card className="p-5 sm:p-6" id="field-timeline" tabIndex={-1}>
-      <h2 className="text-lg font-bold text-espresso">Can v1 ship in time?</h2>
+      <h2 className="text-lg font-bold text-strong">Can v1 ship in time?</h2>
       <p className="text-sm text-muted">Scope discipline is the difference between launching in 3 weeks and never launching at all.</p>
       <div className="mt-5 grid gap-3 sm:grid-cols-3">
         <StatTile label="Features in v1" value={keep} />
@@ -232,7 +232,7 @@ function TimelineCard({ scoping, set }: { scoping: ScopingData; set: (p: Partial
       </div>
       <div className="mt-5">
         <div className="mb-1.5 flex items-baseline justify-between text-sm">
-          <span className="font-semibold text-espresso">
+          <span className="font-semibold text-strong">
             {t.fits ? (ratio > 85 ? 'Fits, but it’s tight' : 'Fits the target') : 'Over the target'}: {t.weeks.toFixed(1)} of {scoping.weeksTarget} weeks
           </span>
         </div>
@@ -263,17 +263,17 @@ function ShippableUnit({ project, set }: StageProps & { set: (p: Partial<Scoping
   }
   return (
     <Card className="p-5 sm:p-6">
-      <h2 className="text-lg font-bold text-espresso">Smallest shippable unit</h2>
+      <h2 className="text-lg font-bold text-strong">Smallest shippable unit</h2>
       <p className="text-sm text-muted">One user type, one core flow, one clear outcome. Complexity is the enemy of shipping fast.</p>
 
       <div className="mt-5 grid gap-5">
         <div>
-          <p className="text-sm font-semibold text-espresso">1 · One user type</p>
-          <p className="mt-1 rounded-xl bg-cream px-3.5 py-2.5 text-sm text-ink">
+          <p className="text-sm font-semibold text-strong">1 · One user type</p>
+          <p className="mt-1 rounded-xl bg-canvas px-3.5 py-2.5 text-sm text-body">
             {project.ideation.targetUser.trim() || (
               <span className="text-muted">
                 Not defined.{' '}
-                <Link className="font-semibold text-teal underline" to={`/app/p/${project.id}/ideation`}>
+                <Link className="font-semibold text-link underline" to={`/app/p/${project.id}/ideation`}>
                   Define it in Ideation
                 </Link>
               </span>
@@ -282,23 +282,23 @@ function ShippableUnit({ project, set }: StageProps & { set: (p: Partial<Scoping
         </div>
 
         <div id="field-coreFlow" tabIndex={-1} className="outline-none">
-          <p className="text-sm font-semibold text-espresso">2 · One core flow</p>
+          <p className="text-sm font-semibold text-strong">2 · One core flow</p>
           <ol className="mt-2 space-y-1.5">
             {flow.map((st, i) => (
               <li key={`${i}-${st}`} className="flex items-center gap-2">
-                <span className="grid size-6 shrink-0 place-items-center rounded-full bg-sand text-xs font-bold text-cocoa">{i + 1}</span>
+                <span className="grid size-6 shrink-0 place-items-center rounded-full bg-subtle text-xs font-bold text-primary">{i + 1}</span>
                 <TextInput
                   className="h-9"
                   value={st}
                   aria-label={`Step ${i + 1}`}
                   onChange={(e) => set({ coreFlow: flow.map((x, k) => (k === i ? e.target.value : x)) })}
                 />
-                <button type="button" className="rounded p-1 text-muted hover:text-ink disabled:opacity-30" disabled={i === 0} onClick={() => move(i, -1)} aria-label={`Move step ${i + 1} up`}>
+                <button type="button" className="rounded p-1 text-muted hover:text-body disabled:opacity-30" disabled={i === 0} onClick={() => move(i, -1)} aria-label={`Move step ${i + 1} up`}>
                   <ArrowUp className="size-4" />
                 </button>
                 <button
                   type="button"
-                  className="rounded p-1 text-muted hover:text-ink disabled:opacity-30"
+                  className="rounded p-1 text-muted hover:text-body disabled:opacity-30"
                   disabled={i === flow.length - 1}
                   onClick={() => move(i, 1)}
                   aria-label={`Move step ${i + 1} down`}
@@ -338,13 +338,13 @@ function ShippableUnit({ project, set }: StageProps & { set: (p: Partial<Scoping
 function Boundary() {
   return (
     <Card className="p-5 sm:p-6">
-      <h2 className="text-lg font-bold text-espresso">Scope checklist: your MVP boundary</h2>
+      <h2 className="text-lg font-bold text-strong">Scope checklist: your MVP boundary</h2>
       <p className="text-sm text-muted">Auth, CRUD and one key workflow. That is the MVP. Everything else waits.</p>
       <dl className="mt-4 grid gap-3 sm:grid-cols-2">
         {STACK_BOUNDARY.map((b) => (
-          <div key={b.layer} className="rounded-xl border border-line bg-white/60 px-4 py-3">
-            <dt className="text-xs font-semibold uppercase tracking-wider text-clay">{b.layer}</dt>
-            <dd className="mt-0.5 text-sm font-semibold text-espresso">{b.choice}</dd>
+          <div key={b.layer} className="rounded-xl border border-line bg-surface px-4 py-3">
+            <dt className="text-xs font-semibold uppercase tracking-wider text-accent">{b.layer}</dt>
+            <dd className="mt-0.5 text-sm font-semibold text-strong">{b.choice}</dd>
           </div>
         ))}
       </dl>

@@ -35,7 +35,7 @@ function ModelDesigner({ building: b, set }: { building: BuildingData; set: (p: 
   const setField = (id: string, partial: Partial<EntityField>) => set({ fields: b.fields.map((f) => (f.id === id ? { ...f, ...partial } : f)) })
   return (
     <Card className="p-5 sm:p-6">
-      <h2 className="text-lg font-bold text-espresso">MongoDB backend: design the data model</h2>
+      <h2 className="text-lg font-bold text-strong">MongoDB backend: design the data model</h2>
       <p className="text-sm text-muted">
         One core object, only the fields the core flow needs. Documents are stored as flexible JSON-like BSON, so you can
         add fields later without migrations.
@@ -51,7 +51,7 @@ function ModelDesigner({ building: b, set }: { building: BuildingData; set: (p: 
               key={k}
               type="button"
               onClick={() => set({ entityName: k, fields: FIELD_PRESETS[k].map((f) => ({ ...f, id: uid('b_') })) })}
-              className="rounded-full border border-line bg-paper px-3 py-1 text-xs font-semibold text-espresso hover:border-tan"
+              className="rounded-full border border-line bg-surface px-3 py-1 text-xs font-semibold text-strong hover:border-accent-soft"
             >
               {k}
             </button>
@@ -60,7 +60,7 @@ function ModelDesigner({ building: b, set }: { building: BuildingData; set: (p: 
       </div>
 
       <div className="mt-2 overflow-hidden rounded-xl border border-line" id="field-fields" tabIndex={-1}>
-        <div className="grid grid-cols-[minmax(0,1fr)_8rem_5.5rem_2.5rem] gap-2 bg-cream/70 px-3 py-2 text-xs font-semibold text-muted">
+        <div className="grid grid-cols-[minmax(0,1fr)_8rem_5.5rem_2.5rem] gap-2 bg-canvas/70 px-3 py-2 text-xs font-semibold text-muted">
           <span>Field</span>
           <span>Type</span>
           <span>Required</span>
@@ -74,14 +74,14 @@ function ModelDesigner({ building: b, set }: { building: BuildingData; set: (p: 
                 aria-label={`Type of ${f.name}`}
                 value={f.type}
                 onChange={(e) => setField(f.id, { type: e.target.value as FieldType })}
-                className="h-9 rounded-xl border border-line bg-white px-2 text-sm"
+                className="h-9 rounded-xl border border-line bg-field px-2 text-sm"
               >
                 {TYPES.map((t) => (
                   <option key={t}>{t}</option>
                 ))}
               </select>
               <label className="flex items-center gap-2 text-sm">
-                <input type="checkbox" className="size-4 accent-cocoa" checked={f.required} onChange={(e) => setField(f.id, { required: e.target.checked })} />
+                <input type="checkbox" className="size-4 accent-primary" checked={f.required} onChange={(e) => setField(f.id, { required: e.target.checked })} />
                 <span className="sr-only sm:not-sr-only">Yes</span>
               </label>
               <button type="button" onClick={() => set({ fields: b.fields.filter((x) => x.id !== f.id) })} className="rounded-lg p-1.5 text-muted hover:bg-bad/10 hover:text-bad" aria-label={`Remove ${f.name}`}>
@@ -129,31 +129,31 @@ function Architecture({ project }: StageProps) {
   ]
   return (
     <Card className="p-5 sm:p-6">
-      <h2 className="text-lg font-bold text-espresso">Architecture</h2>
+      <h2 className="text-lg font-bold text-strong">Architecture</h2>
       <p className="text-sm text-muted">React components fetch and push data with fetch(); Express routes validate and talk to MongoDB through Mongoose.</p>
       <div className="mt-5 flex flex-col items-stretch gap-2 lg:flex-row lg:items-stretch">
         {tiers.map((t, i) => (
           <div key={t.title} className="flex flex-col items-stretch gap-2 lg:flex-1 lg:flex-row lg:items-center">
-            <div className="flex-1 rounded-2xl border border-line bg-white/70 p-4">
+            <div className="flex-1 rounded-2xl border border-line bg-surface p-4">
               <div className="flex items-center gap-2">
-                <span className="grid size-8 place-items-center rounded-lg bg-sand text-cocoa">
+                <span className="grid size-8 place-items-center rounded-lg bg-subtle text-primary">
                   <t.icon className="size-4" aria-hidden="true" />
                 </span>
                 <div>
-                  <p className="font-semibold leading-tight text-espresso">{t.title}</p>
+                  <p className="font-semibold leading-tight text-strong">{t.title}</p>
                   <p className="text-xs text-muted">{t.sub}</p>
                 </div>
               </div>
               <ul className="mt-3 space-y-1">
                 {t.items.map((it) => (
-                  <li key={it} className="break-words rounded-md bg-cream px-2 py-1 font-mono text-[11.5px] text-ink">
+                  <li key={it} className="break-words rounded-md bg-canvas px-2 py-1 font-mono text-[11.5px] text-body">
                     {it}
                   </li>
                 ))}
               </ul>
             </div>
             {i < tiers.length - 1 ? (
-              <div className="flex items-center justify-center text-tan" aria-hidden="true">
+              <div className="flex items-center justify-center text-accent-soft" aria-hidden="true">
                 <ArrowDown className="size-5 lg:hidden" />
                 <ArrowRight className="hidden size-5 lg:block" />
               </div>
@@ -218,7 +218,7 @@ function CodeExplorer({ files, slug, product }: { files: GeneratedFile[]; slug: 
     <Card className="overflow-hidden">
       <div className="flex flex-wrap items-start justify-between gap-4 p-5 sm:p-6">
         <div>
-          <h2 className="text-lg font-bold text-espresso">Code generation: your MERN starter</h2>
+          <h2 className="text-lg font-bold text-strong">Code generation: your MERN starter</h2>
           <p className="max-w-xl text-sm text-muted">
             Production-style code, not just advice: auth flow, data model, REST routes and React pages for {product}. Updates live as you
             change the model.
@@ -234,11 +234,11 @@ function CodeExplorer({ files, slug, product }: { files: GeneratedFile[]; slug: 
         <StatTile label="Stack" value="MERN" sub="Express 5 · Mongoose 9 · React 19 · Vite 8" />
       </div>
       <div className="grid border-t border-line md:grid-cols-[230px_minmax(0,1fr)]">
-        <nav aria-label="Generated files" className="max-h-[480px] overflow-auto border-b border-line bg-cream/50 p-2 md:border-b-0 md:border-r">
+        <nav aria-label="Generated files" className="max-h-[480px] overflow-auto border-b border-line bg-canvas/50 p-2 md:border-b-0 md:border-r">
           <Tree nodes={tree} depth={0} selected={current.path} onSelect={setSelected} />
         </nav>
         <div className="min-w-0">
-          <div className="flex items-center gap-2 border-b border-line bg-paper px-4 py-2 font-mono text-xs text-muted">
+          <div className="flex items-center gap-2 border-b border-line bg-surface px-4 py-2 font-mono text-xs text-muted">
             <FileCode2 className="size-3.5" aria-hidden="true" /> {current.path}
           </div>
           <div className="max-h-[440px] overflow-auto">
@@ -256,8 +256,8 @@ function Tree({ nodes, depth, selected, onSelect }: { nodes: TreeNode[]; depth: 
       {nodes.map((node) =>
         node.children ? (
           <li key={node.path}>
-            <p className="flex items-center gap-1.5 px-2 py-1 text-xs font-semibold text-espresso" style={{ paddingLeft: depth * 12 + 8 }}>
-              <Folder className="size-3.5 text-tan" aria-hidden="true" /> {node.name}
+            <p className="flex items-center gap-1.5 px-2 py-1 text-xs font-semibold text-strong" style={{ paddingLeft: depth * 12 + 8 }}>
+              <Folder className="size-3.5 text-accent-soft" aria-hidden="true" /> {node.name}
             </p>
             <Tree nodes={node.children} depth={depth + 1} selected={selected} onSelect={onSelect} />
           </li>
@@ -269,7 +269,7 @@ function Tree({ nodes, depth, selected, onSelect }: { nodes: TreeNode[]; depth: 
               aria-current={selected === node.path ? 'true' : undefined}
               className={cx(
                 'flex w-full items-center gap-1.5 rounded-md px-2 py-1 text-left font-mono text-xs',
-                selected === node.path ? 'bg-cocoa text-cream' : 'text-ink hover:bg-sand',
+                selected === node.path ? 'bg-primary text-on-primary' : 'text-body hover:bg-subtle',
               )}
               style={{ paddingLeft: depth * 12 + 8 }}
             >
@@ -305,16 +305,16 @@ function LaunchPlan({ project }: StageProps) {
   ]
   return (
     <Card className="p-5 sm:p-6">
-      <h2 className="text-lg font-bold text-espresso">Three-week build plan</h2>
+      <h2 className="text-lg font-bold text-strong">Three-week build plan</h2>
       <p className="text-sm text-muted">Only the features you kept in Scoping. Everything else waits for real user feedback.</p>
       <ol className="mt-5 grid gap-4 md:grid-cols-3">
         {weeks.map((w) => (
-          <li key={w.title} className="rounded-2xl border border-line bg-white/60 p-4">
-            <p className="font-semibold text-espresso">{w.title}</p>
+          <li key={w.title} className="rounded-2xl border border-line bg-surface p-4">
+            <p className="font-semibold text-strong">{w.title}</p>
             <ul className="mt-2 space-y-1.5">
               {w.items.map((it) => (
-                <li key={it} className="flex gap-2 text-sm text-ink/85">
-                  <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-tan" aria-hidden="true" /> {it}
+                <li key={it} className="flex gap-2 text-sm text-body/85">
+                  <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-accent-soft" aria-hidden="true" /> {it}
                 </li>
               ))}
             </ul>

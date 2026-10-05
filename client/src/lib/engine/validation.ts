@@ -57,7 +57,7 @@ export function landingCopy(i: Ideation, o: LandingOverrides): LandingCopy {
 export function landingHtml(copy: LandingCopy): string {
   const e = escapeHtml
   const cards = copy.sections
-    .map((s) => `      <div class="card"><h3>${e(s.title)}</h3><p>${e(s.body)}</p></div>`)
+    .map((s, i) => `      <div class="card"><span class="num">0${i + 1}</span><h3>${e(s.title)}</h3><p>${e(s.body)}</p></div>`)
     .join('\n')
   return `<!doctype html>
 <html lang="en">
@@ -67,27 +67,36 @@ export function landingHtml(copy: LandingCopy): string {
   <title>${e(copy.productName)}: ${e(copy.headline)}</title>
   <meta name="description" content="${e(copy.subheadline)}" />
   <style>
-    *{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#f6f1ea;color:#231d19;line-height:1.55}
-    .wrap{max-width:960px;margin:0 auto;padding:0 20px}
-    header{padding:20px 0;font-weight:800;font-size:20px;color:#6b3f22}
-    .hero{padding:56px 0 40px;text-align:center}
-    h1{font-size:clamp(32px,6vw,56px);line-height:1.05;margin:0 0 16px;color:#2e1a0f;letter-spacing:-0.02em}
-    .sub{font-size:19px;color:#6f6359;max-width:640px;margin:0 auto 28px}
-    form{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
-    input{height:48px;min-width:260px;padding:0 14px;border:1px solid #e3d8ca;border-radius:12px;font-size:16px;background:#fff}
-    button{height:48px;padding:0 22px;border:0;border-radius:12px;background:#6b3f22;color:#f6f1ea;font-weight:700;font-size:16px;cursor:pointer}
-    button:hover{background:#2e1a0f}
-    .thanks{display:none;margin-top:14px;color:#2f7d4f;font-weight:600}
-    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;padding:32px 0 64px}
-    .card{background:#fffdf9;border:1px solid #e3d8ca;border-radius:16px;padding:20px}
-    .card h3{margin:0 0 6px;color:#6b3f22;font-size:17px}.card p{margin:0;color:#4a3f37}
-    footer{padding:24px 0 40px;text-align:center;color:#6f6359;font-size:13px}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:#fafafb;color:#0b0c11;line-height:1.55;-webkit-font-smoothing:antialiased}
+    body::before{content:"";position:fixed;inset:-20% -10% auto;height:75vh;z-index:-1;pointer-events:none;background:radial-gradient(40% 50% at 25% 30%,rgba(124,92,255,.2),transparent 70%),radial-gradient(35% 45% at 78% 22%,rgba(34,211,238,.18),transparent 70%)}
+    .wrap{max-width:1040px;margin:0 auto;padding:0 20px}
+    header{display:flex;align-items:center;gap:10px;padding:20px 0;font-weight:700;font-size:17px;letter-spacing:-.01em}
+    .logo{width:26px;height:26px;border-radius:8px;background:linear-gradient(135deg,#7c5cff,#22d3ee)}
+    .hero{padding:72px 0 40px;text-align:center}
+    .badge{display:inline-flex;align-items:center;gap:8px;margin-bottom:22px;padding:6px 12px;border:1px solid #e4e4ea;border-radius:999px;background:rgba(255,255,255,.75);font-size:13px;color:#3a3f4c}
+    .dot{width:7px;height:7px;border-radius:50%;background:#16a34a}
+    h1{max-width:820px;margin:0 auto 18px;font-size:clamp(36px,7vw,64px);line-height:1.03;letter-spacing:-.035em}
+    .sub{max-width:620px;margin:0 auto 32px;font-size:19px;color:#4b5161}
+    form{display:flex;flex-wrap:wrap;gap:6px;max-width:480px;margin:0 auto;padding:6px;border:1px solid #e4e4ea;border-radius:16px;background:#fff;box-shadow:0 16px 40px -24px rgba(11,12,17,.35)}
+    input{flex:1;min-width:200px;height:46px;padding:0 12px;border:0;border-radius:11px;background:transparent;color:inherit;font-size:16px}
+    input:focus{outline:2px solid #7c5cff;outline-offset:0}
+    button{flex:none;height:46px;padding:0 20px;border:0;border-radius:11px;background:#0b0c11;color:#fff;font-weight:600;font-size:15px;cursor:pointer;transition:transform .15s,opacity .15s}
+    button:hover{opacity:.9;transform:translateY(-1px)}
+    .thanks{display:none;margin-top:16px;color:#15803d;font-weight:600}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;padding:48px 0 72px}
+    .card{padding:24px;border:1px solid #e4e4ea;border-radius:20px;background:rgba(255,255,255,.85)}
+    .num{font:600 12px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.14em;color:#6d28d9}
+    .card h3{margin:12px 0 6px;font-size:18px;letter-spacing:-.01em}
+    .card p{margin:0;color:#3a3f4c}
+    footer{padding:24px 0 40px;border-top:1px solid #e4e4ea;text-align:center;color:#646a79;font-size:13px}
   </style>
 </head>
 <body>
   <div class="wrap">
-    <header>${e(copy.productName)}</header>
+    <header><span class="logo" aria-hidden="true"></span>${e(copy.productName)}</header>
     <section class="hero">
+      <p class="badge"><span class="dot" aria-hidden="true"></span>Now in early access</p>
       <h1>${e(copy.headline)}</h1>
       <p class="sub">${e(copy.subheadline)}</p>
       <!-- Connect this form to Google Forms, Formspree or your own API to collect real sign-ups. -->

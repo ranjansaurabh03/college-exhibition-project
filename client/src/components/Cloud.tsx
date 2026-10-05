@@ -15,17 +15,17 @@ export function CloudCard({ className }: { className?: string }) {
   return (
     <Card className={cx('flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between', className)}>
       <div className="flex gap-3">
-        <Cloud className="mt-0.5 size-5 shrink-0 text-teal" aria-hidden="true" />
+        <Cloud className="mt-0.5 size-5 shrink-0 text-accent" aria-hidden="true" />
         {user ? (
           <div>
-            <p className="font-semibold text-espresso">
+            <p className="font-semibold text-strong">
               Signed in as {user.name} <span className="font-normal text-muted">({user.email})</span>
             </p>
             <SyncStatus className="mt-0.5" />
           </div>
         ) : (
           <div>
-            <p className="font-semibold text-espresso">Save your ideas to the cloud</p>
+            <p className="font-semibold text-strong">Save your ideas to the cloud</p>
             <p className="text-sm text-muted">Create an account to keep projects in MongoDB and open them on any device.</p>
           </div>
         )}
@@ -111,22 +111,22 @@ function AuthDialog({
   const set = (k: keyof typeof form) => (e: ChangeEvent<HTMLInputElement>) => setForm({ ...form, [k]: e.target.value })
 
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-espresso/50 p-4 backdrop-blur-sm" onMouseDown={onClose}>
+    <div className="fixed inset-0 z-50 grid place-items-center bg-canvas/70 p-4 backdrop-blur-md" onMouseDown={onClose}>
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="auth-title"
         onMouseDown={(e) => e.stopPropagation()}
-        className="w-full max-w-sm rounded-3xl bg-cream p-6 shadow-2xl"
+        className="fade-up w-full max-w-sm rounded-3xl border border-line-strong bg-surface p-6 shadow-2xl"
       >
         <div className="flex items-start justify-between">
           <div>
-            <h2 id="auth-title" className="text-xl font-bold text-espresso">
+            <h2 id="auth-title" className="text-xl font-semibold text-strong">
               {mode === 'login' ? 'Welcome back' : 'Create your account'}
             </h2>
             <p className="mt-1 text-sm text-muted">Your projects are stored in MongoDB and sync across devices.</p>
           </div>
-          <button type="button" onClick={onClose} className="rounded-lg p-1 text-muted hover:text-ink" aria-label="Close">
+          <button type="button" onClick={onClose} className="rounded-lg p-1 text-muted hover:text-body" aria-label="Close">
             <X className="size-5" />
           </button>
         </div>
@@ -150,11 +150,11 @@ function AuthDialog({
               onChange={set('password')}
             />
           </Field>
-          {error ? <p className="rounded-xl bg-bad/10 px-3 py-2 text-sm text-espresso">{error}</p> : null}
+          {error ? <p className="rounded-xl bg-bad/10 px-3 py-2 text-sm text-strong">{error}</p> : null}
           <Button type="submit" disabled={busy}>
             {busy ? <LoaderCircle className="size-4 animate-spin" /> : null} {mode === 'login' ? 'Sign in' : 'Create account'}
           </Button>
-          <button type="button" className="text-sm font-semibold text-teal" onClick={() => onMode(mode === 'login' ? 'register' : 'login')}>
+          <button type="button" className="text-sm font-semibold text-link" onClick={() => onMode(mode === 'login' ? 'register' : 'login')}>
             {mode === 'login' ? 'New here? Create an account' : 'Have an account? Sign in'}
           </button>
         </form>

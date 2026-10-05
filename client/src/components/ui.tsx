@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes, ComponentProps, HTMLAttributes, ReactNode } from 'react'
+import type { ButtonHTMLAttributes, ComponentProps, HTMLAttributes, PointerEvent, ReactNode } from 'react'
 import { Link, type LinkProps } from 'react-router'
 import { twMerge } from 'tailwind-merge'
 
@@ -7,29 +7,28 @@ export function cx(...parts: Array<string | false | null | undefined>) {
   return twMerge(...parts)
 }
 
-type Variant = 'primary' | 'secondary' | 'ghost' | 'dark' | 'light' | 'glass' | 'danger'
+type Variant = 'primary' | 'secondary' | 'ghost' | 'ai' | 'danger' | 'glass'
 type Size = 'sm' | 'md' | 'lg'
 
 const variantClass: Record<Variant, string> = {
-  primary: 'bg-cocoa text-cream hover:bg-espresso shadow-sm',
-  secondary: 'bg-paper text-ink border border-line hover:border-tan hover:bg-white',
-  ghost: 'text-muted hover:text-ink hover:bg-sand/60',
-  dark: 'bg-night text-cream hover:bg-[#0b1d38] shadow-sm',
-  light: 'bg-cream text-night hover:bg-white shadow-sm',
-  glass: 'border border-white/20 bg-white/10 text-cream hover:bg-white/20',
-  danger: 'bg-bad text-cream hover:bg-[#962a22] shadow-sm',
+  primary: 'bg-primary text-on-primary shadow-[0_8px_24px_-12px_rgb(0_0_0/0.6)] hover:opacity-90',
+  secondary: 'border border-line bg-surface text-strong hover:border-line-strong hover:bg-subtle',
+  ghost: 'text-muted hover:bg-subtle hover:text-strong',
+  ai: 'bg-ai text-white shadow-[0_10px_30px_-12px_rgb(124_92_255/0.7)] hover:brightness-110',
+  danger: 'bg-bad text-white hover:brightness-110',
+  glass: 'border border-line bg-surface/60 text-strong backdrop-blur hover:bg-subtle',
 }
 
 const sizeClass: Record<Size, string> = {
-  sm: 'h-8 px-3 text-sm gap-1.5 rounded-lg',
+  sm: 'h-8 px-3 text-[13px] gap-1.5 rounded-lg',
   md: 'h-10 px-4 text-sm gap-2 rounded-xl',
-  lg: 'h-12 px-6 text-base gap-2 rounded-xl',
+  lg: 'h-12 px-6 text-[15px] gap-2 rounded-2xl',
 }
 
 export function buttonClass(variant: Variant = 'primary', size: Size = 'md', extra?: string) {
   return cx(
-    'inline-flex items-center justify-center font-semibold transition-colors select-none whitespace-nowrap',
-    'disabled:opacity-50 disabled:pointer-events-none',
+    'inline-flex items-center justify-center font-semibold transition-all duration-200 select-none whitespace-nowrap',
+    'active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none',
     variantClass[variant],
     sizeClass[size],
     extra,
@@ -56,18 +55,30 @@ export function ButtonLink({
 }
 
 export function Card({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
-  return <div className={cx('rounded-2xl border border-line bg-paper shadow-[0_1px_0_rgb(46_26_15/0.04)]', className)} {...props} />
+  return <div className={cx('card', className)} {...props} />
 }
 
-type Tone = 'neutral' | 'good' | 'warn' | 'bad' | 'teal' | 'cocoa'
+/** A card with a soft highlight that follows the pointer. */
+export function SpotlightCard({ className, onPointerMove, ...props }: HTMLAttributes<HTMLDivElement>) {
+  function move(e: PointerEvent<HTMLDivElement>) {
+    const r = e.currentTarget.getBoundingClientRect()
+    e.currentTarget.style.setProperty('--x', `${e.clientX - r.left}px`)
+    e.currentTarget.style.setProperty('--y', `${e.clientY - r.top}px`)
+    onPointerMove?.(e)
+  }
+  return <div className={cx('card spotlight', className)} onPointerMove={move} {...props} />
+}
+
+type Tone = 'neutral' | 'good' | 'warn' | 'bad' | 'link' | 'primary' | 'ai'
 
 const toneClass: Record<Tone, string> = {
-  neutral: 'bg-sand text-espresso',
-  good: 'bg-good/12 text-espresso',
-  warn: 'bg-warn/15 text-espresso',
-  bad: 'bg-bad/12 text-espresso',
-  teal: 'bg-teal/12 text-espresso',
-  cocoa: 'bg-cocoa text-cream',
+  neutral: 'bg-subtle text-strong',
+  good: 'bg-good/15 text-strong',
+  warn: 'bg-warn/18 text-strong',
+  bad: 'bg-bad/15 text-strong',
+  link: 'bg-link/12 text-strong',
+  primary: 'bg-primary text-on-primary',
+  ai: 'bg-accent/15 text-accent',
 }
 
 export function Pill({ tone = 'neutral', className, ...props }: HTMLAttributes<HTMLSpanElement> & { tone?: Tone }) {
@@ -80,7 +91,15 @@ export function Pill({ tone = 'neutral', className, ...props }: HTMLAttributes<H
 }
 
 export function Eyebrow({ children, className }: { children: ReactNode; className?: string }) {
-  return <p className={cx('text-xs font-semibold uppercase tracking-[0.18em] text-clay', className)}>{children}</p>
+  return <p className={cx('font-mono text-[11px] font-medium uppercase tracking-[0.2em] text-accent', className)}>{children}</p>
+}
+
+export function Kbd({ children, className }: { children: ReactNode; className?: string }) {
+  return (
+    <kbd className={cx('inline-flex h-5 min-w-5 items-center justify-center rounded-md border border-line bg-subtle px-1.5 font-mono text-[11px] text-muted', className)}>
+      {children}
+    </kbd>
+  )
 }
 
 export function Field({
@@ -96,7 +115,7 @@ export function Field({
 }) {
   return (
     <div className="space-y-1.5">
-      <label htmlFor={htmlFor} className="block text-sm font-semibold text-espresso">
+      <label htmlFor={htmlFor} className="block text-[13px] font-semibold text-strong">
         {label}
       </label>
       {children}
@@ -106,7 +125,7 @@ export function Field({
 }
 
 const inputBase =
-  'w-full rounded-xl border border-line bg-white px-3.5 text-sm text-ink placeholder:text-muted/70 transition-colors focus:border-teal focus:outline-none focus:ring-2 focus:ring-teal/20'
+  'w-full rounded-xl border border-line bg-field px-3.5 text-sm text-strong placeholder:text-muted/70 transition-colors hover:border-line-strong focus:border-accent focus:outline-none focus:ring-4 focus:ring-accent/15'
 
 export function TextInput({ className, ...props }: ComponentProps<'input'>) {
   return <input className={cx(inputBase, 'h-10', className)} {...props} />
@@ -138,7 +157,7 @@ export function Segmented<T extends string>({
   ariaLabel: string
 }) {
   return (
-    <div id={id} role="group" aria-label={ariaLabel} tabIndex={-1} className="inline-flex flex-wrap gap-1 rounded-xl bg-sand/70 p-1 outline-none">
+    <div id={id} role="group" aria-label={ariaLabel} tabIndex={-1} className="inline-flex flex-wrap gap-1 rounded-xl border border-line bg-field p-1 outline-none">
       {options.map((o) => {
         const on = o.value === value
         return (
@@ -148,8 +167,8 @@ export function Segmented<T extends string>({
             aria-pressed={on}
             onClick={() => onChange(on ? ('' as T) : o.value)}
             className={cx(
-              'h-8 rounded-lg px-3 text-sm font-semibold transition-colors',
-              on ? 'bg-paper text-espresso shadow-sm ring-1 ring-tan' : 'text-muted hover:text-ink',
+              'h-8 rounded-lg px-3 text-[13px] font-semibold transition-all',
+              on ? 'bg-primary text-on-primary shadow-sm' : 'text-muted hover:bg-subtle hover:text-strong',
             )}
           >
             {o.label}

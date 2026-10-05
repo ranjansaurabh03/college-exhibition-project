@@ -106,51 +106,52 @@ export function InterviewDialog({ project, onClose }: { project: Project; onClos
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-espresso/50 p-0 backdrop-blur-sm sm:items-center sm:p-6" onMouseDown={onClose}>
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-canvas/70 p-0 backdrop-blur-md sm:items-center sm:p-6" onMouseDown={onClose}>
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="interview-title"
         onMouseDown={(e) => e.stopPropagation()}
-        className="flex h-[92vh] w-full max-w-2xl flex-col overflow-hidden rounded-t-3xl bg-cream shadow-2xl sm:h-[85vh] sm:rounded-3xl"
+        className="fade-up flex h-[92vh] w-full max-w-2xl flex-col overflow-hidden rounded-t-3xl border border-line-strong bg-surface shadow-2xl sm:h-[85vh] sm:rounded-3xl"
       >
-        <div className="hero-gradient flex items-center justify-between gap-3 px-5 py-4 text-cream">
-          <div className="flex items-center gap-2.5">
-            <span className="grid size-9 place-items-center rounded-xl bg-white/12">
+        <div className="relative flex items-center justify-between gap-3 overflow-hidden border-b border-line px-5 py-4">
+          <div className="pointer-events-none absolute -left-10 -top-16 h-32 w-56 rounded-full bg-ai opacity-25 blur-3xl" aria-hidden="true" />
+          <div className="relative flex items-center gap-3">
+            <span className="grid size-10 place-items-center rounded-2xl bg-ai text-white shadow-[0_8px_24px_-8px_rgb(124_92_255/0.8)]">
               <Bot className="size-5" aria-hidden="true" />
             </span>
             <div>
-              <p id="interview-title" className="font-display font-bold leading-tight">
+              <p id="interview-title" className="font-semibold leading-tight text-strong">
                 From vague to sharp
               </p>
-              <p className="text-xs text-cream/70">
-                {step ? `Question ${position} of ${INTERVIEW.length}` : 'Interview complete'} · built-in rule engine
+              <p className="text-xs text-muted">
+                {step ? `Question ${position} of ${INTERVIEW.length}` : 'Every question answered'} · rule-based interview
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-1">
-            <button type="button" onClick={restart} className="rounded-lg p-2 text-cream/70 hover:bg-white/10 hover:text-white" title="Clear the conversation">
+          <div className="relative flex items-center gap-1">
+            <button type="button" onClick={restart} className="rounded-lg p-2 text-muted hover:bg-subtle hover:text-strong" title="Clear the conversation">
               <RotateCcw className="size-4" />
               <span className="sr-only">Clear the conversation</span>
             </button>
-            <button type="button" onClick={onClose} className="rounded-lg p-2 text-cream/70 hover:bg-white/10 hover:text-white" title="Close">
+            <button type="button" onClick={onClose} className="rounded-lg p-2 text-muted hover:bg-subtle hover:text-strong" title="Close">
               <X className="size-5" />
               <span className="sr-only">Close</span>
             </button>
           </div>
         </div>
 
-        <div className="h-1 bg-sand">
-          <div className="h-full bg-teal transition-[width]" style={{ width: `${(INTERVIEW.filter((s) => isAnswered(i, s.field)).length / INTERVIEW.length) * 100}%` }} />
+        <div className="h-1 bg-subtle">
+          <div className="h-full bg-ai transition-[width] duration-500" style={{ width: `${(INTERVIEW.filter((s) => isAnswered(i, s.field)).length / INTERVIEW.length) * 100}%` }} />
         </div>
 
-        <div ref={listRef} className="flex-1 space-y-3 overflow-y-auto px-4 py-5 sm:px-6" aria-live="polite">
+        <div ref={listRef} className="flex-1 space-y-3 overflow-y-auto bg-canvas/40 px-4 py-5 sm:px-6" aria-live="polite">
           {messages.map((m) => (
             <div key={m.id} className={cx('flex', m.role === 'user' ? 'justify-end' : 'justify-start')}>
               <div
                 className={cx(
                   'max-w-[85%] whitespace-pre-line rounded-2xl px-4 py-2.5 text-sm leading-relaxed',
-                  m.role === 'user' ? 'rounded-br-md bg-cocoa text-cream' : 'rounded-bl-md border border-line bg-paper text-ink',
+                  m.role === 'user' ? 'rounded-br-md bg-primary text-on-primary' : 'rounded-bl-md border border-line bg-field text-body',
                 )}
               >
                 {m.text}
@@ -160,7 +161,7 @@ export function InterviewDialog({ project, onClose }: { project: Project; onClos
           {step ? <p className="pl-1 text-xs text-muted">Why I’m asking: {step.why}</p> : null}
         </div>
 
-        <div className="border-t border-line bg-paper px-4 py-4 sm:px-6">
+        <div className="border-t border-line px-4 py-4 sm:px-6">
           {!step ? (
             <div className="flex flex-wrap items-center justify-between gap-3">
               <p className="text-sm text-muted">

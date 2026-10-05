@@ -13,14 +13,14 @@ function inline(text: string): ReactNode[] {
     const i = m.index ?? 0
     if (i > last) out.push(text.slice(last, i))
     const t = m[0]
-    if (m[1]) out.push(<code key={k++} className="rounded bg-sand/70 px-1 py-0.5 font-mono text-[0.85em]">{t.slice(1, -1)}</code>)
-    else if (m[2]) out.push(<strong key={k++} className="font-semibold text-espresso">{t.slice(2, -2)}</strong>)
+    if (m[1]) out.push(<code key={k++} className="rounded bg-subtle/70 px-1 py-0.5 font-mono text-[0.85em]">{t.slice(1, -1)}</code>)
+    else if (m[2]) out.push(<strong key={k++} className="font-semibold text-strong">{t.slice(2, -2)}</strong>)
     else if (m[3]) out.push(<em key={k++}>{t.slice(1, -1)}</em>)
     else {
       const label = t.slice(1, t.indexOf(']('))
       const href = t.slice(t.indexOf('](') + 2, -1)
       out.push(
-        <a key={k++} href={href} target="_blank" rel="noreferrer noopener" className="font-semibold text-teal underline">
+        <a key={k++} href={href} target="_blank" rel="noreferrer noopener" className="font-semibold text-link underline">
           {label}
         </a>,
       )
@@ -87,13 +87,13 @@ export function Markdown({ text }: { text: string }) {
         switch (b.kind) {
           case 'h':
             return (
-              <p key={n} className="font-semibold text-espresso">
+              <p key={n} className="font-semibold text-strong">
                 {inline(b.text)}
               </p>
             )
           case 'ul':
             return (
-              <ul key={n} className="list-disc space-y-1 pl-5 marker:text-tan">
+              <ul key={n} className="list-disc space-y-1 pl-5 marker:text-accent-soft">
                 {b.items.map((it, j) => (
                   <li key={j}>{inline(it)}</li>
                 ))}
@@ -109,7 +109,7 @@ export function Markdown({ text }: { text: string }) {
             )
           case 'code':
             return (
-              <pre key={n} className="overflow-x-auto rounded-lg bg-cream px-3 py-2 font-mono text-[12px] leading-relaxed [font-variant-ligatures:none]">
+              <pre key={n} className="overflow-x-auto rounded-lg bg-canvas px-3 py-2 font-mono text-[12px] leading-relaxed [font-variant-ligatures:none]">
                 <code>{b.text}</code>
               </pre>
             )

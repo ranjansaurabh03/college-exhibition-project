@@ -1,12 +1,15 @@
-import { Check, Copy, MessagesSquare, Quote } from 'lucide-react'
-import { useState } from 'react'
+import { Check, Copy, MessagesSquare, Quote, Sparkles } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router'
 import { InterviewDialog } from '../../components/InterviewDialog'
 import { Button, Card, Field, Segmented, TextArea, TextInput } from '../../components/ui'
 import { ScoreMeter, StatusLabel, toneForScore } from '../../components/viz'
 import { copyText } from '../../lib/download'
 import { INTERVIEW, isAnswered, lintOneLiner, oneLiner, scoreIdea } from '../../lib/engine/ideation'
+import { useServer } from '../../lib/server'
 import { useProjects } from '../../lib/store'
 import type { Frequency, Ideation as IdeationData, Willingness } from '../../lib/types'
+import { useAiDraft } from '../../lib/useAiDraft'
 import type { StageProps } from '../Workspace'
 
 const FREQUENCIES: { value: Frequency; label: string }[] = [
@@ -28,19 +31,42 @@ export default function Ideation({ project }: StageProps) {
   const i = project.ideation
   const set = (partial: Partial<IdeationData>) => patch(project.id, 'ideation', partial)
   const answered = INTERVIEW.filter((s) => isAnswered(i, s.field)).length
+  const draft = useAiDraft(project, 'ideation')
+  const checked = useServer((s) => s.checked)
+  const [params, setParams] = useSearchParams()
+
+  // Arriving from the idea box (?start=1): Gemini drafts the canvas, or the interview opens without AI.
+  useEffect(() => {
+    if (params.get('start') !== '1' || !checked) return
+    setParams({}, { replace: true })
+    if (draft.enabled) void draft.run({ renameIfNamed: project.name })
+    else setInterviewOpen(true)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params, checked])
 
   return (
     <div className="space-y-6">
-      <Card className="flex flex-col gap-4 border-teal/30 bg-teal/[0.06] p-5 sm:flex-row sm:items-center sm:justify-between">
+      {draft.running ? (
+        <div className="card relative overflow-hidden p-5" role="status">
+          <div className="shimmer absolute inset-0" aria-hidden="true" />
+          <p className="relative flex items-center gap-2 font-semibold text-strong">
+            <Sparkles className="size-4 animate-pulse text-accent" aria-hidden="true" /> Gemini is drafting your canvas from your idea…
+          </p>
+          <p className="relative mt-1 text-sm text-muted">It fills the empty fields only. You can edit or undo everything.</p>
+        </div>
+      ) : null}
+      <Card className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex gap-3">
-          <MessagesSquare className="mt-0.5 size-5 shrink-0 text-teal" aria-hidden="true" />
+          <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-accent/15 text-accent">
+            <MessagesSquare className="size-4" aria-hidden="true" />
+          </span>
           <div>
-            <p className="font-semibold text-espresso">
+            <p className="font-semibold text-strong">
               {answered === 0
                 ? 'Start with a conversation, not a form'
                 : answered < INTERVIEW.length
                   ? `Interview in progress: ${answered} of ${INTERVIEW.length} answered`
-                  : 'Interview complete'}
+                  : 'Every question answered'}
             </p>
             <p className="text-sm text-muted">
               Your co-founder asks one question at a time and pushes back on vague answers. Everything fills the canvas
@@ -48,7 +74,7 @@ export default function Ideation({ project }: StageProps) {
             </p>
           </div>
         </div>
-        <Button variant="dark" onClick={() => setInterviewOpen(true)} className="shrink-0">
+        <Button variant="secondary" onClick={() => setInterviewOpen(true)} className="shrink-0">
           {answered === 0 ? 'Interview me' : answered < INTERVIEW.length ? 'Continue interview' : 'Review interview'}
         </Button>
       </Card>
@@ -123,9 +149,9 @@ export default function Ideation({ project }: StageProps) {
 function SectionHead({ n, title, note }: { n: string; title: string; note: string }) {
   return (
     <div className="flex gap-3">
-      <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-sand font-display font-bold text-cocoa">{n}</span>
+      <span className="grid size-8 shrink-0 place-items-center rounded-lg border border-line bg-subtle font-mono text-sm text-accent">{n}</span>
       <div>
-        <h2 className="text-lg font-bold text-espresso">{title}</h2>
+        <h2 className="text-lg font-semibold text-strong">{title}</h2>
         <p className="text-sm text-muted">{note}</p>
       </div>
     </div>
@@ -138,8 +164,8 @@ function Scorecard({ data }: { data: IdeationData }) {
     <Card className="p-5 sm:p-6">
       <div className="grid gap-6 md:grid-cols-[220px_1fr] md:items-center">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-clay">Idea scorecard</p>
-          <p className="mt-1 text-5xl font-semibold text-espresso">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-accent">Idea scorecard</p>
+          <p className="mt-1 text-5xl font-semibold text-strong">
             {s.overall}
             <span className="text-lg text-muted">/100</span>
           </p>
@@ -173,16 +199,16 @@ function OneLinerCard({ data, set }: { data: IdeationData; set: (p: Partial<Idea
     <Card className="p-5 sm:p-6">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-clay">Sharpen the one-liner</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-accent">Sharpen the one-liner</p>
           <p className="mt-1 text-sm text-muted">“[Product] helps [user] do [outcome] by [unique approach].”</p>
         </div>
         <Button variant="secondary" size="sm" onClick={copy} disabled={text.includes('[')}>
           {copied ? <Check className="size-4" /> : <Copy className="size-4" />} {copied ? 'Copied' : 'Copy'}
         </Button>
       </div>
-      <blockquote className="mt-4 rounded-2xl bg-cream px-5 py-4">
-        <Quote className="mb-1 size-4 text-tan" aria-hidden="true" />
-        <p className="font-display text-lg font-semibold leading-snug text-espresso sm:text-xl">{text}</p>
+      <blockquote className="mt-4 rounded-2xl bg-canvas px-5 py-4">
+        <Quote className="mb-1 size-4 text-accent-soft" aria-hidden="true" />
+        <p className="font-display text-lg font-semibold leading-snug text-strong sm:text-xl">{text}</p>
       </blockquote>
       <ul className="mt-3 space-y-1">
         {lint.map((l) => (
