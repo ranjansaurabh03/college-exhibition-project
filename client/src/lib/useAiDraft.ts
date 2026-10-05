@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { create } from 'zustand'
 import { mergeDraft, requestDraft } from './drafts'
 import { useServer } from './server'
 import { useProjects } from './store'
@@ -12,14 +12,20 @@ const LABEL: Record<StageKey, string> = {
   building: 'data-model section',
 }
 
+// Shared per project and stage, so every "Draft with AI" control (the header button, the idea-box start)
+// shows the same Drafting… state and a second click can't start a duplicate draft.
+const useDrafting = create<Record<string, boolean>>()(() => ({}))
+const setDrafting = (key: string, on: boolean) => useDrafting.setState({ [key]: on })
+
 /** "Draft with AI" for one stage: fills empty fields only, with an Undo in the toast. */
 export function useAiDraft(project: Project, stage: StageKey) {
   const enabled = useServer((s) => s.status?.ai.enabled ?? false)
-  const [running, setRunning] = useState(false)
+  const key = `${project.id}:${stage}`
+  const running = useDrafting((s) => Boolean(s[key]))
 
   async function run({ renameIfNamed }: { renameIfNamed?: string } = {}) {
-    if (running) return
-    setRunning(true)
+    if (useDrafting.getState()[key]) return
+    setDrafting(key, true)
     try {
       const { draft, model } = await requestDraft(stage, project)
       const store = useProjects.getState()
@@ -50,7 +56,7 @@ export function useAiDraft(project: Project, stage: StageKey) {
     } catch (err) {
       toast(err instanceof Error ? err.message : 'The AI draft failed. Try again.', { tone: 'error' })
     } finally {
-      setRunning(false)
+      setDrafting(key, false)
     }
   }
 

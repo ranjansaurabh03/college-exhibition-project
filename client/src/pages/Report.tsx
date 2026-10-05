@@ -45,6 +45,8 @@ function useJson<T>(path: string): T | null | 'missing' {
 }
 
 const kb = (b: number) => b / 1024
+// Chunks warmed after load (lib/prefetch.ts and the workspace's stage loaders).
+const PREFETCHED = new Set(['Dashboard', 'Workspace', 'Ideation', 'Validation', 'Scoping', 'Building'])
 
 const SECTIONS = [
   ['overview', 'Overview'],
@@ -399,8 +401,17 @@ function PerformanceSection() {
   const lazy = stats.files.filter((f) => f.kind === 'lazy')
   const largestLazy = [...lazy].sort((a, b) => b.gzip - a.gzip)[0]
   const label = (f: BuildFile) => (f.kind === 'entry' ? 'App shell (entry)' : f.name === 'jszip.min' ? 'jszip (zip export)' : f.name)
-  const note = (f: BuildFile) =>
-    `${f.initial ? 'Loaded on first visit' : f.kind === 'lazy' ? 'Loaded on demand' : 'Shared, loaded when needed'} · ${kb(f.bytes).toFixed(1)} KB before compression`
+  const when = (f: BuildFile) =>
+    f.initial
+      ? 'Needed for the first paint'
+      : f.name === 'jszip.min'
+        ? 'Loaded only when you download a .zip'
+        : PREFETCHED.has(f.name)
+          ? 'Prefetched right after the page loads'
+          : f.kind === 'lazy'
+            ? 'Loaded when you open it'
+            : 'Shared, loaded with the pages that use it'
+  const note = (f: BuildFile) => `${when(f)} · ${kb(f.bytes).toFixed(1)} KB before compression`
   return (
     <Section id="performance" n={5} title="Measured performance">
       <p>
@@ -409,12 +420,12 @@ function PerformanceSection() {
         <code className="font-mono text-sm">build-stats.json</code>, and this page reads it.
       </p>
       <div className="grid gap-3 sm:grid-cols-3">
-        <StatTile label="First-visit download (gzip)" value={`${kb(initialGzip).toFixed(1)} KB`} sub={`${initial.length} files: app shell, shared UI and CSS`} />
+        <StatTile label="Needed for first paint (gzip)" value={`${kb(initialGzip).toFixed(1)} KB`} sub={`${initial.length} files: app shell, shared UI and CSS`} />
         <StatTile label="Whole app (gzip)" value={`${kb(totalGzip).toFixed(1)} KB`} sub={`${stats.files.length} JS and CSS files`} />
         <StatTile
           label="Largest on-demand chunk"
           value={largestLazy ? `${kb(largestLazy.gzip).toFixed(1)} KB` : '—'}
-          sub={largestLazy ? `${label(largestLazy)}, only when you download a .zip` : undefined}
+          sub={largestLazy ? `${label(largestLazy)} · ${when(largestLazy).toLowerCase()}` : undefined}
         />
       </div>
       <Card className="p-5">
@@ -425,9 +436,10 @@ function PerformanceSection() {
         />
       </Card>
       <p className="text-sm text-muted">
-        Code splitting is real: each stage (Ideation, Validation, Scoping, Building) is a separate chunk loaded when you open
-        it, and the zip library is loaded only when you download the generated code. Initial load stays well under the
-        200 KB gzip budget from the original plan.
+        Code splitting is real: the first paint needs only the app shell, shared UI and CSS, well under the 200 KB gzip
+        budget from the original plan. The dashboard, the workspace and each stage (Ideation, Validation, Scoping,
+        Building) are separate chunks, prefetched right after the page loads so switching stages never waits on the
+        network. The zip library loads only when you download the generated code.
       </p>
     </Section>
   )
