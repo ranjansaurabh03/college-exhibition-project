@@ -144,5 +144,5 @@ MongoDB when it is connected) keep a public deployment inside the free tier.
 
 ## Credits
 
-Built by Saurabh Ranjan for the College Project Exhibition 2026. References: Sean Ellis’ product–market fit survey;
+Built by Parth Gujar, Krish Kumar, Aadarsh Kumar, Shubh Tiwari and Saurabh Ranjan for the College Project Exhibition 2026. References: Sean Ellis’ product–market fit survey;
 Rob Fitzpatrick, *The Mom Test*.

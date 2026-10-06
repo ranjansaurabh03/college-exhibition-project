@@ -5,7 +5,7 @@ export const SITE = {
   subtitle: 'Your technical partner for building products',
   repoUrl: 'https://github.com/ranjansaurabh03/college-exhibition-project',
   credits: {
-    builtBy: ['Saurabh Ranjan'],
+    builtBy: ['Parth Gujar', 'Krish Kumar', 'Aadarsh Kumar', 'Shubh Tiwari', 'Saurabh Ranjan'],
     event: 'College Project Exhibition 2026',
   },
 } as const
